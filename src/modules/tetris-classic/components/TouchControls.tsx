@@ -1,7 +1,6 @@
 /**
  * On-screen mobile touch controls for the game.
- * Layout: Pause button at top, action buttons in two rows at bottom.
- * Uses onTouchStart for instant response; onClick is blocked if touch already fired.
+ * Pause button is handled separately in the main layout (above the board).
  */
 import { useCallback, useRef } from 'react';
 import type { GameAction } from '../hooks/useInput';
@@ -39,24 +38,9 @@ export function TouchControls({ onAction }: TouchControlsProps) {
   const moveLeft = useTouchAction(onAction, 'moveLeft');
   const softDrop = useTouchAction(onAction, 'softDrop');
   const moveRight = useTouchAction(onAction, 'moveRight');
-  const pause = useTouchAction(onAction, 'pause');
 
   return (
     <div className="tc-touch-controls" role="group" aria-label="Game controls">
-      {/* Pause button — top right, small */}
-      <div className="tc-touch-row tc-touch-row-pause">
-        <button
-          className="tc-touch-btn tc-touch-btn-pause"
-          onTouchStart={pause.onTouchStart}
-          onClick={pause.onClick}
-          aria-label="Pause game"
-          type="button"
-        >
-          &#x23F8; Pause
-        </button>
-      </div>
-
-      {/* Action buttons row: rotate, hard drop, hold */}
       <div className="tc-touch-row tc-touch-row-top">
         <button
           className="tc-touch-btn tc-touch-rotate"
@@ -86,8 +70,6 @@ export function TouchControls({ onAction }: TouchControlsProps) {
           HOLD
         </button>
       </div>
-
-      {/* Movement row: left, down, right */}
       <div className="tc-touch-row tc-touch-row-bottom">
         <button
           className="tc-touch-btn tc-touch-left"

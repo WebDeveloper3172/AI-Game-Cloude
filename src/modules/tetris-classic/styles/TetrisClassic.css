@@ -355,8 +355,9 @@
   flex-direction: column;
   gap: var(--gap-sm);
   width: 100%;
-  max-width: 320px;
+  max-width: 280px;
   align-items: center;
+  margin: 0 auto;
 }
 
 .tc-touch-row {
@@ -365,37 +366,14 @@
   gap: var(--gap-sm);
 }
 
-/* Pause row — top, smaller button */
-.tc-touch-row-pause {
-  margin-bottom: var(--gap-xs);
-}
-
-.tc-touch-btn-pause {
-  width: auto !important;
-  height: auto !important;
-  padding: 6px 20px;
-  font-size: 0.85rem !important;
-  font-weight: 600;
-  gap: 4px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--color-text-secondary);
-}
-
-.tc-touch-btn-pause:active {
-  background: var(--color-primary);
-  color: white;
-}
-
 .tc-touch-btn {
   width: 72px;
-  height: 64px;
+  height: 56px;
   border-radius: var(--radius-md);
   border: 2px solid var(--tc-board-border);
   background: var(--color-surface);
   color: var(--color-text);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -410,11 +388,10 @@
   border-color: var(--color-primary);
 }
 
-/* Movement buttons slightly larger for easier tapping */
 .tc-touch-row-bottom .tc-touch-btn {
   width: 80px;
-  height: 68px;
-  font-size: 1.6rem;
+  height: 60px;
+  font-size: 1.5rem;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -689,6 +666,7 @@
 }
 
 /* ===== Responsive ===== */
+/* ===== Tablet layout ===== */
 @media (max-width: 768px) {
   .tc-game-layout {
     flex-direction: column;
@@ -702,7 +680,7 @@
     gap: var(--gap-sm);
     min-width: auto;
     width: 100%;
-    max-width: 300px;
+    max-width: 320px;
     justify-content: center;
   }
 
@@ -716,36 +694,121 @@
   }
 }
 
+/* ===== Phone layout — compact vertical, everything fits on screen ===== */
 @media (max-width: 480px) {
   .tc-container {
-    padding: var(--gap-sm);
+    padding: var(--gap-xs) var(--gap-sm);
+    justify-content: flex-start;
+    min-height: 100dvh;
+    overflow: hidden;
   }
 
+  .tc-game-layout {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+  }
+
+  /* Hide side panels — show compact info above board */
+  .tc-left-panel {
+    flex-direction: row;
+    gap: var(--gap-xs);
+    min-width: auto;
+    width: 100%;
+    justify-content: center;
+    order: 1;
+  }
+
+  .tc-right-panel {
+    display: none; /* Hide NEXT on phone — too much space */
+  }
+
+  .tc-center-panel {
+    order: 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Scale board to fit screen width */
   .tc-board-container {
     border-width: 2px;
+    max-width: calc(100vw - 16px);
   }
 
+  .tc-game-canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Compact score panel — horizontal strip */
   .tc-score-panel {
-    padding: var(--gap-sm);
+    padding: var(--gap-xs) var(--gap-sm);
     flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-wrap: nowrap;
     gap: var(--gap-md);
+    width: 100%;
+    justify-content: center;
   }
 
   .tc-stat-block {
-    min-width: 60px;
+    min-width: auto;
+  }
+
+  .tc-stat-label {
+    font-size: 0.55rem;
+  }
+
+  .tc-stat-value {
+    font-size: 0.9rem;
+  }
+
+  /* Compact hold piece */
+  .tc-hold-piece {
+    padding: var(--gap-xs);
+    max-width: 80px;
+  }
+
+  .tc-hold-piece .tc-panel-title {
+    font-size: 0.65rem;
+  }
+
+  /* Toolbar always visible */
+  .tc-game-toolbar {
+    margin-bottom: 2px;
+  }
+
+  .tc-btn-toolbar {
+    padding: 4px 14px;
+    font-size: 0.75rem;
+  }
+
+  /* Compact touch controls */
+  .tc-touch-controls {
+    max-width: 260px;
+    gap: 4px;
+  }
+
+  .tc-touch-row {
+    gap: 4px;
   }
 
   .tc-touch-btn {
     width: 64px;
-    height: 56px;
-    font-size: 1.3rem;
+    height: 48px;
+    font-size: 1.2rem;
   }
 
   .tc-touch-row-bottom .tc-touch-btn {
     width: 72px;
-    height: 60px;
+    height: 52px;
+    font-size: 1.3rem;
+  }
+
+  .tc-touch-hold {
+    font-size: 0.65rem !important;
   }
 }
 
@@ -782,13 +845,6 @@
   justify-content: center;
   gap: var(--gap-sm);
   margin-bottom: var(--gap-sm);
-}
-
-/* Hide toolbar pause button on touch devices — touch controls have their own */
-@media (hover: none) and (pointer: coarse) {
-  .tc-game-toolbar {
-    display: none;
-  }
 }
 
 .tc-btn-toolbar {
