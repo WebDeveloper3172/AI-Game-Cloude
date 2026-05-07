@@ -389,7 +389,7 @@ export class TetrisAudioEngine {
     }
     this.musicPlaying = true;
     this.musicPaused = false;
-    this.currentTrack = 0;
+    this.currentTrack = Math.floor(Math.random() * this.getTracks().length);
     this.loopsOnCurrentTrack = 0;
     this.scheduleMusic(this.ctx.currentTime);
   }
@@ -513,7 +513,12 @@ export class TetrisAudioEngine {
         this.loopsOnCurrentTrack++;
         if (this.loopsOnCurrentTrack >= this.LOOPS_BEFORE_SWITCH) {
           this.loopsOnCurrentTrack = 0;
-          this.currentTrack = (this.currentTrack + 1) % tracks.length;
+          // Pick a random different track
+          let next = Math.floor(Math.random() * tracks.length);
+          while (next === this.currentTrack && tracks.length > 1) {
+            next = Math.floor(Math.random() * tracks.length);
+          }
+          this.currentTrack = next;
         }
         this.scheduleMusic(startAt + loopDur);
       }

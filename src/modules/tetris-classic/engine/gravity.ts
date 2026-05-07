@@ -5,26 +5,27 @@
 
 /** Frames per grid cell at 60fps for each level (NES-style curve adapted). */
 const GRAVITY_TABLE: number[] = [
-  // Level 1-10
-  60,  // ~1.0 cells/sec
-  53,  // ~1.13
-  46,  // ~1.3
-  39,  // ~1.54
-  33,  // ~1.82
-  27,  // ~2.22
-  22,  // ~2.73
-  17,  // ~3.53
-  13,  // ~4.62
-  10,  // ~6.0
-  // Level 11-15
-  8,   // ~7.5
-  6,   // ~10.0
+  // Level 1-5: comfortable start, noticeable speed increase each level
+  48,  // ~1.25 cells/sec
+  38,  // ~1.58
+  30,  // ~2.0
+  24,  // ~2.5
+  19,  // ~3.16
+  // Level 6-10: getting fast
+  15,  // ~4.0
+  12,  // ~5.0
+  9,   // ~6.67
+  7,   // ~8.57
   5,   // ~12.0
+  // Level 11-15: very fast
   4,   // ~15.0
   3,   // ~20.0
-  // Level 16-20
-  2,
-  2,
+  3,   // ~20.0
+  2,   // ~30.0
+  2,   // ~30.0
+  // Level 16-20: extreme
+  1,
+  1,
   1,
   1,
   1,
