@@ -1,5 +1,6 @@
 /**
  * On-screen mobile touch controls for the game.
+ * Layout: Pause button at top, action buttons in two rows at bottom.
  * Uses onTouchStart for instant response; onClick is blocked if touch already fired.
  */
 import { useCallback, useRef } from 'react';
@@ -17,14 +18,12 @@ function useTouchAction(onAction: (action: GameAction) => void, action: GameActi
       e.preventDefault();
       touchedRef.current = true;
       onAction(action);
-      // Reset after a short delay so onClick doesn't also fire
       setTimeout(() => { touchedRef.current = false; }, 300);
     },
     [onAction, action],
   );
 
   const handleClick = useCallback(() => {
-    // Only fire if touch didn't already handle it (desktop fallback)
     if (!touchedRef.current) {
       onAction(action);
     }
@@ -44,6 +43,20 @@ export function TouchControls({ onAction }: TouchControlsProps) {
 
   return (
     <div className="tc-touch-controls" role="group" aria-label="Game controls">
+      {/* Pause button — top right, small */}
+      <div className="tc-touch-row tc-touch-row-pause">
+        <button
+          className="tc-touch-btn tc-touch-btn-pause"
+          onTouchStart={pause.onTouchStart}
+          onClick={pause.onClick}
+          aria-label="Pause game"
+          type="button"
+        >
+          &#x23F8; Pause
+        </button>
+      </div>
+
+      {/* Action buttons row: rotate, hard drop, hold */}
       <div className="tc-touch-row tc-touch-row-top">
         <button
           className="tc-touch-btn tc-touch-rotate"
@@ -73,6 +86,8 @@ export function TouchControls({ onAction }: TouchControlsProps) {
           HOLD
         </button>
       </div>
+
+      {/* Movement row: left, down, right */}
       <div className="tc-touch-row tc-touch-row-bottom">
         <button
           className="tc-touch-btn tc-touch-left"
@@ -100,15 +115,6 @@ export function TouchControls({ onAction }: TouchControlsProps) {
           type="button"
         >
           &#x25B6;
-        </button>
-        <button
-          className="tc-touch-btn tc-touch-pause"
-          onTouchStart={pause.onTouchStart}
-          onClick={pause.onClick}
-          aria-label="Pause game"
-          type="button"
-        >
-          &#x23F8;
         </button>
       </div>
     </div>

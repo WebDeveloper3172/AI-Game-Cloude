@@ -355,7 +355,8 @@
   flex-direction: column;
   gap: var(--gap-sm);
   width: 100%;
-  max-width: 300px;
+  max-width: 320px;
+  align-items: center;
 }
 
 .tc-touch-row {
@@ -364,8 +365,31 @@
   gap: var(--gap-sm);
 }
 
+/* Pause row — top, smaller button */
+.tc-touch-row-pause {
+  margin-bottom: var(--gap-xs);
+}
+
+.tc-touch-btn-pause {
+  width: auto !important;
+  height: auto !important;
+  padding: 6px 20px;
+  font-size: 0.85rem !important;
+  font-weight: 600;
+  gap: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--color-text-secondary);
+}
+
+.tc-touch-btn-pause:active {
+  background: var(--color-primary);
+  color: white;
+}
+
 .tc-touch-btn {
-  width: 64px;
+  width: 72px;
   height: 64px;
   border-radius: var(--radius-md);
   border: 2px solid var(--tc-board-border);
@@ -384,6 +408,13 @@
 .tc-touch-btn:active {
   background: var(--color-primary);
   border-color: var(--color-primary);
+}
+
+/* Movement buttons slightly larger for easier tapping */
+.tc-touch-row-bottom .tc-touch-btn {
+  width: 80px;
+  height: 68px;
+  font-size: 1.6rem;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -707,9 +738,14 @@
   }
 
   .tc-touch-btn {
-    width: 56px;
+    width: 64px;
     height: 56px;
     font-size: 1.3rem;
+  }
+
+  .tc-touch-row-bottom .tc-touch-btn {
+    width: 72px;
+    height: 60px;
   }
 }
 
