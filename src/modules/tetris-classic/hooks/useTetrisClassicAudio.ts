@@ -1,32 +1,10 @@
 /**
- * Audio hook for all Tetris Classic sound effects using Howler.js.
- * Returns play functions for each sound event.
- * Sound files are stubs -- architecture is in place for when assets arrive.
+ * Audio hook for Tetris Classic — uses the procedural Web Audio API engine.
+ * No external audio files required.
  */
-import { useRef, useCallback, useMemo } from 'react';
-import { Howl } from 'howler';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import type { GameSettings } from '../engine/types';
-
-interface SoundDef {
-  src: string[];
-  volume: number;
-}
-
-const SOUND_DEFS: Record<string, SoundDef> = {
-  move: { src: ['/audio/tetris/move.mp3'], volume: 0.3 },
-  rotate: { src: ['/audio/tetris/rotate.mp3'], volume: 0.4 },
-  softDrop: { src: ['/audio/tetris/soft-drop.mp3'], volume: 0.3 },
-  hardDrop: { src: ['/audio/tetris/hard-drop.mp3'], volume: 0.6 },
-  lock: { src: ['/audio/tetris/lock.mp3'], volume: 0.5 },
-  lineClear: { src: ['/audio/tetris/line-clear.mp3'], volume: 0.7 },
-  tetris: { src: ['/audio/tetris/tetris.mp3'], volume: 0.8 },
-  combo: { src: ['/audio/tetris/combo.mp3'], volume: 0.6 },
-  tSpin: { src: ['/audio/tetris/tspin.mp3'], volume: 0.7 },
-  levelUp: { src: ['/audio/tetris/level-up.mp3'], volume: 0.7 },
-  hold: { src: ['/audio/tetris/hold.mp3'], volume: 0.4 },
-  gameOver: { src: ['/audio/tetris/game-over.mp3'], volume: 0.8 },
-  pause: { src: ['/audio/tetris/pause.mp3'], volume: 0.4 },
-};
+import { getAudioEngine } from '../audio/AudioEngine';
 
 export interface TetrisAudio {
   playMove: () => void;
@@ -42,67 +20,79 @@ export interface TetrisAudio {
   playHold: () => void;
   playGameOver: () => void;
   playPause: () => void;
-}
-
-/**
- * Creates a safe play function that silently catches errors
- * (e.g., when audio files don't exist yet).
- */
-function safePlay(howl: Howl | null): () => void {
-  return () => {
-    try {
-      howl?.play();
-    } catch {
-      // Audio file not available yet -- silently skip
-    }
-  };
+  playResume: () => void;
+  playHighScore: () => void;
+  playCountdownTick: () => void;
+  playCountdownGo: () => void;
+  startMusic: () => void;
+  stopMusic: () => void;
+  pauseMusic: () => void;
+  resumeMusic: () => void;
+  /** Call once after a user gesture to unlock AudioContext. */
+  initOnInteraction: () => void;
 }
 
 export function useTetrisClassicAudio(settings: GameSettings): TetrisAudio {
-  const howlsRef = useRef<Map<string, Howl>>(new Map());
+  const engine = useMemo(() => getAudioEngine(), []);
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
 
-  // Lazily create Howl instances
-  const getHowl = useCallback(
-    (name: string): Howl | null => {
-      if (howlsRef.current.has(name)) {
-        const h = howlsRef.current.get(name)!;
-        h.volume(SOUND_DEFS[name].volume * settings.sfxVolume);
-        return h;
-      }
+  // Sync volume settings whenever they change
+  useEffect(() => {
+    engine.setMasterVolume(settings.volume);
+    engine.setSfxVolume(settings.sfxEnabled ? settings.sfxVolume : 0);
+    engine.setMusicVolume(settings.musicEnabled ? settings.volume : 0);
+  }, [engine, settings.volume, settings.sfxVolume, settings.musicEnabled, settings.sfxEnabled]);
 
-      try {
-        const def = SOUND_DEFS[name];
-        if (!def) return null;
-        const howl = new Howl({
-          src: def.src,
-          volume: def.volume * settings.sfxVolume,
-          preload: false, // Don't preload since files may not exist
-        });
-        howlsRef.current.set(name, howl);
-        return howl;
-      } catch {
-        return null;
-      }
+  const initOnInteraction = useCallback(() => {
+    engine.init();
+    engine.resume();
+    // Apply current settings immediately after init
+    engine.setMasterVolume(settingsRef.current.volume);
+    engine.setSfxVolume(settingsRef.current.sfxEnabled ? settingsRef.current.sfxVolume : 0);
+    engine.setMusicVolume(settingsRef.current.musicEnabled ? settingsRef.current.volume : 0);
+  }, [engine]);
+
+  // Wrap each play function to be a no-op when sfx is disabled
+  const sfx = useCallback(
+    (fn: () => void) => {
+      return () => {
+        if (!settingsRef.current.sfxEnabled) return;
+        fn();
+      };
     },
-    [settings.sfxVolume],
+    [],
   );
 
   return useMemo(
     () => ({
-      playMove: safePlay(getHowl('move')),
-      playRotate: safePlay(getHowl('rotate')),
-      playSoftDrop: safePlay(getHowl('softDrop')),
-      playHardDrop: safePlay(getHowl('hardDrop')),
-      playLock: safePlay(getHowl('lock')),
-      playLineClear: safePlay(getHowl('lineClear')),
-      playTetris: safePlay(getHowl('tetris')),
-      playCombo: safePlay(getHowl('combo')),
-      playTSpin: safePlay(getHowl('tSpin')),
-      playLevelUp: safePlay(getHowl('levelUp')),
-      playHold: safePlay(getHowl('hold')),
-      playGameOver: safePlay(getHowl('gameOver')),
-      playPause: safePlay(getHowl('pause')),
+      playMove: sfx(() => engine.playMove()),
+      playRotate: sfx(() => engine.playRotate()),
+      playSoftDrop: sfx(() => engine.playSoftDrop()),
+      playHardDrop: sfx(() => engine.playHardDrop()),
+      playLock: sfx(() => engine.playLock()),
+      playLineClear: sfx(() => engine.playLineClear()),
+      playTetris: sfx(() => engine.playTetris()),
+      playCombo: sfx(() => engine.playCombo()),
+      playTSpin: sfx(() => engine.playTSpin()),
+      playLevelUp: sfx(() => engine.playLevelUp()),
+      playHold: sfx(() => engine.playHold()),
+      playGameOver: sfx(() => engine.playGameOver()),
+      playPause: sfx(() => engine.playPause()),
+      playResume: sfx(() => engine.playResume()),
+      playHighScore: sfx(() => engine.playHighScore()),
+      playCountdownTick: sfx(() => engine.playCountdownTick()),
+      playCountdownGo: sfx(() => engine.playCountdownGo()),
+      startMusic: () => {
+        if (settingsRef.current.musicEnabled) engine.startMusic();
+      },
+      stopMusic: () => engine.stopMusic(true),
+      pauseMusic: () => engine.pauseMusic(),
+      resumeMusic: () => {
+        if (settingsRef.current.musicEnabled) engine.resumeMusic();
+      },
+      initOnInteraction,
     }),
-    [getHowl],
+    [engine, sfx, initOnInteraction],
   );
 }

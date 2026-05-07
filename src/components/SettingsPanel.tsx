@@ -1,8 +1,15 @@
 /**
- * Settings panel with volume, SFX, accessibility toggles.
+ * Settings panel with volume, SFX, accessibility toggles, and theme selector.
  */
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../modules/tetris-classic/hooks/useLocalStorage';
+import type { ThemeName } from '../modules/tetris-classic/engine/types';
+
+const THEMES: { id: ThemeName; label: string; description: string }[] = [
+  { id: 'dark', label: 'Dark', description: 'Classic dark theme' },
+  { id: 'neon', label: 'Neon', description: 'Vibrant neon glow' },
+  { id: 'pastel', label: 'Pastel', description: 'Soft and friendly' },
+];
 
 export function SettingsPanel() {
   const navigate = useNavigate();
@@ -12,6 +19,28 @@ export function SettingsPanel() {
     <div className="settings-panel">
       <div className="settings-content">
         <h1 className="settings-title">Settings</h1>
+
+        <div className="settings-group">
+          <h2 className="settings-group-title">Theme</h2>
+          <div className="settings-theme-cards">
+            {THEMES.map(theme => (
+              <button
+                key={theme.id}
+                type="button"
+                className={`settings-theme-card ${settings.theme === theme.id ? 'settings-theme-card-active' : ''}`}
+                onClick={() => updateSetting('theme', theme.id)}
+                aria-pressed={settings.theme === theme.id}
+              >
+                <span className={`settings-theme-preview settings-theme-preview-${theme.id}`} aria-hidden="true" />
+                <span className="settings-theme-label">{theme.label}</span>
+                <span className="settings-theme-desc">{theme.description}</span>
+              </button>
+            ))}
+          </div>
+          <p className="settings-theme-note">
+            Theme applies to UI panels and backgrounds. Canvas piece colors will be updated in a future release.
+          </p>
+        </div>
 
         <div className="settings-group">
           <h2 className="settings-group-title">Audio</h2>
@@ -44,6 +73,32 @@ export function SettingsPanel() {
               aria-label="Sound effects volume"
             />
             <span className="settings-value">{Math.round(settings.sfxVolume * 100)}%</span>
+          </label>
+
+          <label className="settings-row settings-toggle-row">
+            <span className="settings-label">Music</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={settings.musicEnabled}
+              className={`settings-toggle ${settings.musicEnabled ? 'active' : ''}`}
+              onClick={() => updateSetting('musicEnabled', !settings.musicEnabled)}
+            >
+              {settings.musicEnabled ? 'ON' : 'OFF'}
+            </button>
+          </label>
+
+          <label className="settings-row settings-toggle-row">
+            <span className="settings-label">Sound Effects</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={settings.sfxEnabled}
+              className={`settings-toggle ${settings.sfxEnabled ? 'active' : ''}`}
+              onClick={() => updateSetting('sfxEnabled', !settings.sfxEnabled)}
+            >
+              {settings.sfxEnabled ? 'ON' : 'OFF'}
+            </button>
           </label>
         </div>
 

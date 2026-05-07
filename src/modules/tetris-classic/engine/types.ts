@@ -97,20 +97,28 @@ export interface HighScoreEntry {
   date: string;
 }
 
+export type ThemeName = 'dark' | 'neon' | 'pastel';
+
 export interface GameSettings {
   volume: number;
   sfxVolume: number;
+  musicEnabled: boolean;
+  sfxEnabled: boolean;
   ghostPiece: boolean;
   highContrast: boolean;
   reducedMotion: boolean;
+  theme: ThemeName;
 }
 
 export const DEFAULT_SETTINGS: GameSettings = {
   volume: 0.7,
   sfxVolume: 0.8,
+  musicEnabled: true,
+  sfxEnabled: true,
   ghostPiece: true,
   highContrast: false,
   reducedMotion: false,
+  theme: 'dark',
 };
 
 export const GRID_COLS = 10;

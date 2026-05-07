@@ -1,5 +1,61 @@
 /* ===== Classic Tetris Module Styles ===== */
 
+/* ===== Theme: Neon ===== */
+.tc-container[data-theme="neon"] {
+  --tc-board-bg: #050510;
+  --tc-board-border: #1a1a3a;
+  --tc-i: #00ffff;
+  --tc-o: #ffff00;
+  --tc-t: #ff00ff;
+  --tc-s: #00ff00;
+  --tc-z: #ff0000;
+  --tc-j: #0066ff;
+  --tc-l: #ff8800;
+  background: linear-gradient(180deg, #020208 0%, #080818 100%);
+}
+
+.tc-container[data-theme="neon"] .tc-board-container {
+  box-shadow: var(--shadow-lg), inset 0 0 40px rgba(0,0,0,0.5), 0 0 30px rgba(0, 255, 255, 0.1);
+  border-color: rgba(0, 255, 255, 0.3);
+}
+
+.tc-container[data-theme="neon"] .tc-hold-piece,
+.tc-container[data-theme="neon"] .tc-score-panel,
+.tc-container[data-theme="neon"] .tc-piece-preview {
+  border-color: rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.05);
+}
+
+.tc-container[data-theme="neon"] .tc-stat-value {
+  text-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
+}
+
+/* ===== Theme: Pastel ===== */
+.tc-container[data-theme="pastel"] {
+  --tc-board-bg: #1a1a2e;
+  --tc-board-border: #3a3a5e;
+  --tc-i: #89CFF0;
+  --tc-o: #FDFD96;
+  --tc-t: #CDB4DB;
+  --tc-s: #B5EAD7;
+  --tc-z: #FF9AA2;
+  --tc-j: #A2D2FF;
+  --tc-l: #FFDAC1;
+  background: linear-gradient(180deg, #141428 0%, #1e1e3a 100%);
+}
+
+.tc-container[data-theme="pastel"] .tc-board-container {
+  border-color: #4a4a6e;
+  box-shadow: var(--shadow-lg), inset 0 0 30px rgba(0,0,0,0.3);
+}
+
+.tc-container[data-theme="pastel"] .tc-hold-piece,
+.tc-container[data-theme="pastel"] .tc-score-panel,
+.tc-container[data-theme="pastel"] .tc-piece-preview {
+  background: #222244;
+  border-color: #4a4a6e;
+}
+
 /* Container */
 .tc-container {
   min-height: 100dvh;
@@ -149,6 +205,10 @@
 }
 
 /* ===== Board ===== */
+.tc-game-board-wrapper {
+  position: relative;
+}
+
 .tc-board-container {
   position: relative;
   border: 3px solid var(--tc-board-border);
@@ -652,6 +712,307 @@
   box-shadow: 0 6px 28px rgba(0, 206, 201, 0.6);
 }
 
+/* ===== Background Particles ===== */
+.tc-bg-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.tc-bg-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  animation: tc-float-up linear infinite;
+}
+
+@keyframes tc-float-up {
+  0% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.2;
+  }
+  90% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateY(-20px) translateX(20px);
+    opacity: 0;
+  }
+}
+
+/* ===== Tetris Flash (4-line clear) ===== */
+.tc-tetris-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 215, 0, 0.3);
+  pointer-events: none;
+  z-index: 5;
+  animation: tc-flash-fade 200ms ease-out forwards;
+}
+
+@keyframes tc-flash-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ===== Pause Blur on Board ===== */
+.tc-board-blurred {
+  filter: blur(3px);
+  transition: filter 150ms ease;
+}
+
+/* ===== NEW RECORD! Banner ===== */
+.tc-new-record {
+  color: #ffd700;
+  font-size: 1.8rem;
+  font-weight: 900;
+  text-align: center;
+  animation: tc-record-pulse 1s ease-in-out infinite;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+  margin-bottom: var(--gap-sm);
+}
+
+.tc-new-record-stars {
+  font-size: 1.4rem;
+  letter-spacing: 4px;
+}
+
+@keyframes tc-record-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+/* ===== Countdown Overlay ===== */
+.tc-countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.tc-countdown-number {
+  font-size: 6rem;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.5), 0 4px 8px rgba(0, 0, 0, 0.5);
+  animation: tc-countdown-pop 0.8s ease-out;
+}
+
+.tc-countdown-go {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #4dff4d;
+  text-shadow: 0 0 30px rgba(77, 255, 77, 0.5), 0 4px 8px rgba(0, 0, 0, 0.5);
+  animation: tc-countdown-pop 0.4s ease-out;
+}
+
+@keyframes tc-countdown-pop {
+  0% {
+    transform: scale(2);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+}
+
+/* ===== Score Popup ===== */
+.tc-score-popup {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  pointer-events: none;
+  text-align: center;
+  animation: tc-score-float 1.2s ease-out forwards;
+}
+
+.tc-score-popup-label {
+  font-size: 1rem;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+.tc-score-popup-points {
+  font-size: 1.6rem;
+  font-weight: 900;
+  font-family: var(--font-mono);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes tc-score-float {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-60px) scale(0.8);
+  }
+}
+
+/* ===== Level Up Celebration ===== */
+.tc-levelup-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 18;
+  pointer-events: none;
+  animation: tc-levelup-flash 1.2s ease-out forwards;
+}
+
+@keyframes tc-levelup-flash {
+  0% {
+    background: rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    background: rgba(255, 215, 0, 0.1);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.tc-levelup-text {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+  animation: tc-countdown-pop 1s ease-out;
+}
+
+.tc-levelup-confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  animation: tc-confetti-burst 1.2s ease-out forwards;
+}
+
+@keyframes tc-confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--confetti-x), var(--confetti-y)) rotate(720deg) scale(0.3);
+  }
+}
+
+/* ===== Tutorial Overlay ===== */
+.tc-tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(4px);
+}
+
+.tc-tutorial-content {
+  text-align: center;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--gap-xl) var(--gap-2xl);
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--color-primary);
+  max-width: 360px;
+  width: 90%;
+}
+
+.tc-tutorial-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--color-primary);
+  margin-bottom: var(--gap-lg);
+}
+
+.tc-tutorial-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  margin-bottom: var(--gap-xl);
+}
+
+.tc-tutorial-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  padding: var(--gap-xs) 0;
+}
+
+.tc-tutorial-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 36px;
+  padding: 0 var(--gap-sm);
+  background: var(--color-bg);
+  border: 1px solid var(--tc-board-border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  box-shadow: 0 2px 0 var(--tc-board-border);
+  flex-shrink: 0;
+}
+
+.tc-tutorial-key-arrow {
+  gap: var(--gap-xs);
+}
+
+.tc-tutorial-key-wide {
+  min-width: 70px;
+}
+
+.tc-tutorial-desc {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  text-align: left;
+}
+
+.tc-tutorial-dismiss {
+  width: 100%;
+}
+
 /* ===== Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
   .tc-combo-indicator {
@@ -672,5 +1033,45 @@
 
   .tc-btn-play-again:hover {
     transform: none;
+  }
+
+  .tc-bg-particle {
+    animation: none;
+    display: none;
+  }
+
+  .tc-new-record {
+    animation: none;
+  }
+
+  .tc-board-blurred {
+    filter: none;
+  }
+
+  .tc-tetris-flash {
+    animation: none;
+    display: none;
+  }
+
+  .tc-countdown-number,
+  .tc-countdown-go {
+    animation: none;
+  }
+
+  .tc-score-popup {
+    animation: none;
+  }
+
+  .tc-levelup-overlay {
+    animation: none;
+  }
+
+  .tc-levelup-text {
+    animation: none;
+  }
+
+  .tc-levelup-confetti {
+    animation: none;
+    display: none;
   }
 }

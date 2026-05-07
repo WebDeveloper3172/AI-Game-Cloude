@@ -4,6 +4,7 @@ import { SettingsPanel } from './components/SettingsPanel'
 import { lazy, Suspense } from 'react'
 
 const TetrisClassic = lazy(() => import('./modules/tetris-classic/TetrisClassic'))
+const Leaderboard = lazy(() => import('./components/LeaderboardPage'))
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<MainMenu />} />
           <Route path="/tetris-classic" element={<TetrisClassic />} />
           <Route path="/settings" element={<SettingsPanel />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
       </Suspense>
     </div>

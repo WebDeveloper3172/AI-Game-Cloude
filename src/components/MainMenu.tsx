@@ -33,6 +33,15 @@ export function MainMenu() {
           </button>
 
           <button
+            className="menu-btn menu-btn-leaderboard"
+            onClick={() => navigate('/leaderboard')}
+            type="button"
+          >
+            <span className="menu-btn-icon">&#x265B;</span>
+            Leaderboard
+          </button>
+
+          <button
             className="menu-btn menu-btn-settings"
             onClick={() => navigate('/settings')}
             type="button"

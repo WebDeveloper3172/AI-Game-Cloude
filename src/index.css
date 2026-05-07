@@ -328,6 +328,198 @@ body {
   color: white;
 }
 
+/* ===== Leaderboard Button ===== */
+.menu-btn-leaderboard {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--tc-board-border);
+}
+
+.menu-btn-leaderboard:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-warning);
+}
+
+/* ===== Leaderboard Screen ===== */
+.leaderboard-panel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--gap-xl);
+}
+
+.leaderboard-content {
+  max-width: 600px;
+  width: 100%;
+}
+
+.leaderboard-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  margin-bottom: var(--gap-xl);
+  text-align: center;
+  color: var(--color-warning);
+}
+
+.leaderboard-empty {
+  text-align: center;
+  padding: var(--gap-2xl);
+  color: var(--color-text-secondary);
+  font-size: 1.1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--tc-board-border);
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--tc-board-border);
+  margin-bottom: var(--gap-lg);
+}
+
+.leaderboard-header-row {
+  background: var(--color-bg);
+}
+
+.leaderboard-th {
+  padding: 0.75rem 0.5rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  border-bottom: 2px solid var(--tc-board-border);
+}
+
+.leaderboard-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background var(--transition-fast);
+}
+
+.leaderboard-row:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-row:hover {
+  background: rgba(108, 92, 231, 0.08);
+}
+
+.leaderboard-row-recent {
+  background: rgba(108, 92, 231, 0.15);
+  border-left: 3px solid var(--color-primary);
+}
+
+.leaderboard-row-recent:hover {
+  background: rgba(108, 92, 231, 0.2);
+}
+
+.leaderboard-rank {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-weight: bold;
+  font-family: var(--font-mono);
+  color: var(--color-primary);
+}
+
+.leaderboard-rank-1 { color: #ffd700; }
+.leaderboard-rank-2 { color: #c0c0c0; }
+.leaderboard-rank-3 { color: #cd7f32; }
+
+.leaderboard-cell {
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.leaderboard-score {
+  font-weight: 700;
+}
+
+.leaderboard-date {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-family: var(--font-main);
+}
+
+/* ===== Settings Theme Cards ===== */
+.settings-theme-cards {
+  display: flex;
+  gap: var(--gap-sm);
+  margin-bottom: var(--gap-sm);
+}
+
+.settings-theme-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-xs);
+  padding: var(--gap-md) var(--gap-sm);
+  background: var(--color-bg);
+  border: 2px solid var(--tc-board-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-main);
+  color: var(--color-text);
+}
+
+.settings-theme-card:hover {
+  border-color: var(--color-primary);
+}
+
+.settings-theme-card-active {
+  border-color: var(--color-primary);
+  background: rgba(108, 92, 231, 0.15);
+  box-shadow: 0 0 12px rgba(108, 92, 231, 0.3);
+}
+
+.settings-theme-preview {
+  display: block;
+  width: 40px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.settings-theme-preview-dark {
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+.settings-theme-preview-neon {
+  background: linear-gradient(135deg, #050510 0%, #0a0a20 50%, #00ffff33 100%);
+  box-shadow: inset 0 0 6px rgba(0, 255, 255, 0.3);
+}
+
+.settings-theme-preview-pastel {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2a2a4e 50%, #89CFF033 100%);
+}
+
+.settings-theme-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.settings-theme-desc {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.settings-theme-note {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-top: var(--gap-xs);
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .main-menu-title {

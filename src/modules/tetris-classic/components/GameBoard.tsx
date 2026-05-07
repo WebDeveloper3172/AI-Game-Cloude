@@ -9,6 +9,13 @@ import { GRID_COLS, GRID_ROWS } from '../engine/types';
 import { PIECE_DEFINITIONS, getPieceCells } from '../engine/pieces';
 import { getGhostCells } from './GhostPiece';
 
+export interface HardDropTrail {
+  cols: number[];
+  fromY: number;
+  toY: number;
+  color: string;
+}
+
 interface GameBoardProps {
   grid: Grid;
   activePiece: ActivePiece | null;
@@ -17,6 +24,8 @@ interface GameBoardProps {
   clearAnimProgress: number; // 0..1
   showGhost: boolean;
   highContrast: boolean;
+  hardDropTrail?: HardDropTrail | null;
+  isPaused?: boolean;
 }
 
 const CELL_SIZE = 30;
@@ -234,6 +243,8 @@ export function GameBoard({
   clearAnimProgress,
   showGhost,
   highContrast,
+  hardDropTrail,
+  isPaused,
 }: GameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
@@ -241,6 +252,19 @@ export function GameBoard({
   const animFrameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const [shaking, setShaking] = useState(false);
+  const [tetrisFlash, setTetrisFlash] = useState(false);
+
+  // Hard drop trail fade state
+  const trailRef = useRef<{ trail: HardDropTrail; startTime: number } | null>(null);
+  const prevTrailRef = useRef<HardDropTrail | null>(null);
+
+  // Track hard drop trail changes
+  useEffect(() => {
+    if (hardDropTrail && hardDropTrail !== prevTrailRef.current) {
+      trailRef.current = { trail: hardDropTrail, startTime: performance.now() };
+    }
+    prevTrailRef.current = hardDropTrail ?? null;
+  }, [hardDropTrail]);
 
   // Spawn particles when new clearing lines appear
   useEffect(() => {
@@ -251,11 +275,16 @@ export function GameBoard({
     ) {
       particlesRef.current = spawnParticles(clearingLines, grid);
 
-      // Trigger screen shake for Tetris (4-line clear)
+      // Trigger screen shake + golden flash for Tetris (4-line clear)
       if (clearingLines.length >= 4) {
         setShaking(true);
-        const timer = setTimeout(() => setShaking(false), 200);
-        return () => clearTimeout(timer);
+        setTetrisFlash(true);
+        const shakeTimer = setTimeout(() => setShaking(false), 200);
+        const flashTimer = setTimeout(() => setTetrisFlash(false), 200);
+        return () => {
+          clearTimeout(shakeTimer);
+          clearTimeout(flashTimer);
+        };
       }
     }
     prevClearingRef.current = clearingLines;
@@ -272,6 +301,13 @@ export function GameBoard({
 
     // Background
     ctx.fillStyle = '#0a0a1a';
+    ctx.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
+
+    // Feature 4: Subtle vertical gradient — light from above
+    const grad = ctx.createLinearGradient(0, 0, 0, BOARD_HEIGHT);
+    grad.addColorStop(0, 'rgba(255,255,255,0.03)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
     // Grid lines
@@ -340,6 +376,27 @@ export function GameBoard({
     if (particlesRef.current.length > 0) {
       drawParticles(ctx, particlesRef.current);
     }
+
+    // Feature 2: Hard drop trail effect
+    if (trailRef.current) {
+      const elapsed = performance.now() - trailRef.current.startTime;
+      const TRAIL_DURATION = 150; // ms
+      if (elapsed < TRAIL_DURATION) {
+        const alpha = 0.2 * (1 - elapsed / TRAIL_DURATION);
+        const { cols, fromY, toY, color } = trailRef.current.trail;
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha;
+        for (const col of cols) {
+          const px = col * CELL_SIZE + 4;
+          const py = fromY * CELL_SIZE;
+          const h = (toY - fromY) * CELL_SIZE;
+          ctx.fillRect(px, py, CELL_SIZE - 8, h);
+        }
+        ctx.globalAlpha = 1;
+      } else {
+        trailRef.current = null;
+      }
+    }
   // Note: ghostY is intentionally excluded — ghost rendering uses getGhostCells() directly
   }, [grid, activePiece, clearingLines, clearAnimProgress, showGhost, highContrast]);
 
@@ -384,9 +441,11 @@ export function GameBoard({
         ref={canvasRef}
         width={BOARD_WIDTH}
         height={BOARD_HEIGHT}
-        className="tc-game-canvas"
+        className={`tc-game-canvas${isPaused ? ' tc-board-blurred' : ''}`}
         aria-hidden="true"
       />
+      {/* Feature 3: Golden flash overlay on Tetris clear */}
+      {tetrisFlash && <div className="tc-tetris-flash" />}
       {/* Hidden ARIA mirror for screen readers */}
       <div className="sr-only" role="status" aria-label="Tetris game board">
         {ariaDescription}

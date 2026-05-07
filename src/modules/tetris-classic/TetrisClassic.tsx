@@ -18,7 +18,7 @@ import {
   DEFAULT_SETTINGS,
 } from './engine/types';
 import { createGrid, checkCollision, placePiece, findFullRows, clearRows, getGhostY, isPieceOnGround } from './engine/grid';
-import { getSpawnPosition } from './engine/pieces';
+import { getSpawnPosition, PIECE_DEFINITIONS, getPieceCells } from './engine/pieces';
 import { rotateCW, rotateCCW } from './engine/rotation';
 import { calculateScore, calculateLevel, didLevelUp, softDropPoints, hardDropPoints, detectTSpin } from './engine/scoring';
 import { getGravityInterval } from './engine/gravity';
@@ -26,13 +26,17 @@ import { createRandomizer } from './engine/randomizer';
 import type { Randomizer } from './engine/randomizer';
 
 import { GameBoard } from './components/GameBoard';
+import type { HardDropTrail } from './components/GameBoard';
 import { PiecePreview } from './components/PiecePreview';
 import { HoldPiece } from './components/HoldPiece';
 import { ScorePanel } from './components/ScorePanel';
 import { ComboIndicator } from './components/ComboIndicator';
+import { ScorePopup } from './components/ScorePopup';
 import { TouchControls } from './components/TouchControls';
 import { PauseOverlay } from './components/PauseOverlay';
 import { GameOverScreen } from './components/GameOverScreen';
+import { BackgroundParticles } from './components/BackgroundParticles';
+import { TutorialOverlay } from './components/TutorialOverlay';
 
 import { useGameLoop } from './hooks/useGameLoop';
 import { useInput } from './hooks/useInput';
@@ -81,6 +85,20 @@ export default function TetrisClassic() {
   const [comboLabel, setComboLabel] = useState('');
   const [comboTrigger, setComboTrigger] = useState(0);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
+
+  // Feature 1: Countdown state (3, 2, 1, 0=GO, null=inactive)
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownTimerRef = useRef<number | null>(null);
+
+  // Feature 2: Score popup state
+  const [scorePopup, setScorePopup] = useState<{ points: number; label: string; trigger: number }>({ points: 0, label: '', trigger: 0 });
+
+  // Feature 3: Level-up celebration
+  const [levelUpCelebration, setLevelUpCelebration] = useState<number | null>(null);
+  const levelUpTimerRef = useRef<number | null>(null);
+
+  // Hard drop trail
+  const [hardDropTrail, setHardDropTrail] = useState<HardDropTrail | null>(null);
 
   const { settings } = useSettings();
   const { scores, addScore } = useHighScores();
@@ -228,6 +246,15 @@ export default function TetrisClassic() {
         setComboTrigger(t => t + 1);
       }
 
+      // Feature 2: Show score popup
+      if (result.points > 0) {
+        setScorePopup(prev => ({
+          points: result.points,
+          label: result.label,
+          trigger: prev.trigger + 1,
+        }));
+      }
+
       // Audio & announcements
       if (fullRows.length === 4) {
         audio.playTetris();
@@ -241,6 +268,15 @@ export default function TetrisClassic() {
       if (leveledUp) {
         audio.playLevelUp();
         announce(`Level up! Level ${newLevel}`);
+        // Feature 3: Level-up celebration
+        setLevelUpCelebration(newLevel);
+        if (levelUpTimerRef.current !== null) {
+          window.clearTimeout(levelUpTimerRef.current);
+        }
+        levelUpTimerRef.current = window.setTimeout(() => {
+          setLevelUpCelebration(null);
+          levelUpTimerRef.current = null;
+        }, 1200);
       }
 
       // Start clear animation
@@ -334,21 +370,74 @@ export default function TetrisClassic() {
 
   const gameLoop = useGameLoop(gameTick);
 
-  // ---- Start game ----
+  // ---- Cleanup audio on unmount ----
+  useEffect(() => {
+    return () => {
+      audio.stopMusic();
+    };
+  }, [audio]);
+
+  // ---- Cleanup countdown/levelup timers on unmount ----
+  useEffect(() => {
+    return () => {
+      if (countdownTimerRef.current !== null) window.clearTimeout(countdownTimerRef.current);
+      if (levelUpTimerRef.current !== null) window.clearTimeout(levelUpTimerRef.current);
+    };
+  }, []);
+
+  // ---- Start game (with countdown) ----
   const startGame = useCallback(() => {
+    audio.initOnInteraction();
+
     const rand = createRandomizer();
     randomizerRef.current = rand;
     gravityAccum.current = 0;
     lastMoveWasRotation.current = false;
 
+    // Prepare game state but don't start the loop yet
     let gs = createInitialState();
     gs.phase = 'playing';
     gs = spawnPiece(gs);
     setState(gs);
     setIsNewHighScore(false);
-    gameLoop.start();
-    announce('Game started! Use arrow keys to move and rotate pieces.');
-  }, [spawnPiece, gameLoop, announce]);
+    setLevelUpCelebration(null);
+    setScorePopup({ points: 0, label: '', trigger: 0 });
+
+    // Start countdown sequence: 3 -> 2 -> 1 -> GO! -> play
+    setCountdown(3);
+    audio.playCountdownTick();
+
+    // Clear any existing countdown timer
+    if (countdownTimerRef.current !== null) {
+      window.clearTimeout(countdownTimerRef.current);
+    }
+
+    const step = (value: number) => {
+      if (value > 1) {
+        countdownTimerRef.current = window.setTimeout(() => {
+          setCountdown(value - 1);
+          audio.playCountdownTick();
+          step(value - 1);
+        }, 800);
+      } else if (value === 1) {
+        // After "1", show "GO!"
+        countdownTimerRef.current = window.setTimeout(() => {
+          setCountdown(0); // 0 = GO!
+          audio.playCountdownGo();
+          // After GO!, start the actual game
+          countdownTimerRef.current = window.setTimeout(() => {
+            setCountdown(null);
+            gameLoop.start();
+            audio.startMusic();
+            announce('Game started! Use arrow keys to move and rotate pieces.');
+            countdownTimerRef.current = null;
+          }, 400);
+        }, 800);
+      }
+    };
+
+    step(3);
+  }, [spawnPiece, gameLoop, announce, audio]);
 
   // ---- Handle actions from input ----
   const handleAction = useCallback((action: GameAction) => {
@@ -360,10 +449,13 @@ export default function TetrisClassic() {
         if (prev.phase === 'playing') {
           gameLoop.stop();
           audio.playPause();
+          audio.pauseMusic();
           return { ...prev, phase: 'paused' as GamePhase };
         }
         if (prev.phase === 'paused') {
           gameLoop.start();
+          audio.playResume();
+          audio.resumeMusic();
           return { ...prev, phase: 'playing' as GamePhase };
         }
         return prev;
@@ -412,6 +504,17 @@ export default function TetrisClassic() {
         case 'hardDrop': {
           const ghostY = getGhostY(piece, gs.grid);
           const dropDist = ghostY - piece.position.y;
+          // Generate hard drop trail data
+          if (dropDist > 1) {
+            const cells = getPieceCells(piece.type, piece.rotation, piece.position);
+            const cols = [...new Set(cells.map(c => c.x))];
+            setHardDropTrail({
+              cols,
+              fromY: piece.position.y,
+              toY: ghostY,
+              color: PIECE_DEFINITIONS[piece.type].color,
+            });
+          }
           gs.activePiece = { ...piece, position: { x: piece.position.x, y: ghostY } };
           gs.stats = { ...gs.stats, score: gs.stats.score + hardDropPoints(dropDist) };
           lastMoveWasRotation.current = false;
@@ -470,6 +573,7 @@ export default function TetrisClassic() {
       // Check for game over after lock
       if (gs.phase === 'gameOver') {
         gameLoop.stop();
+        audio.stopMusic();
         audio.playGameOver();
         announce(`Game over! Score: ${gs.stats.score}`);
 
@@ -477,6 +581,7 @@ export default function TetrisClassic() {
         const isHigh = scores.length < 10 || gs.stats.score > (scores[scores.length - 1]?.score ?? 0);
         setIsNewHighScore(isHigh);
         if (isHigh) {
+          audio.playHighScore();
           addScore({
             score: gs.stats.score,
             lines: gs.stats.lines,
@@ -490,22 +595,25 @@ export default function TetrisClassic() {
     });
   }, [gameLoop, audio, announce, lockPiece, spawnPiece, scores, addScore, resetInactivityTimer]);
 
-  // ---- Input hook ----
+  // ---- Input hook (disabled during countdown) ----
   useInput(
     { onAction: handleAction },
-    state.phase === 'playing' || state.phase === 'paused',
+    (state.phase === 'playing' || state.phase === 'paused') && countdown === null,
   );
 
   // ---- Pause/Resume ----
   const handleResume = useCallback(() => {
     setState(prev => ({ ...prev, phase: 'playing' as GamePhase }));
     gameLoop.start();
-  }, [gameLoop]);
+    audio.playResume();
+    audio.resumeMusic();
+  }, [gameLoop, audio]);
 
   const handleQuit = useCallback(() => {
     gameLoop.stop();
+    audio.stopMusic();
     navigate('/');
-  }, [gameLoop, navigate]);
+  }, [gameLoop, audio, navigate]);
 
   const handleRetry = useCallback(() => {
     startGame();
@@ -522,7 +630,8 @@ export default function TetrisClassic() {
     : 0;
 
   return (
-    <div className="tc-container" data-high-contrast={settings.highContrast || undefined}>
+    <div className="tc-container" data-high-contrast={settings.highContrast || undefined} data-theme={settings.theme || 'dark'}>
+      <BackgroundParticles />
       {state.phase === 'idle' && (
         <div className="tc-start-screen">
           <h1 className="tc-title">Classic Tetris</h1>
@@ -565,8 +674,46 @@ export default function TetrisClassic() {
                 clearAnimProgress={clearProgress}
                 showGhost={settings.ghostPiece}
                 highContrast={settings.highContrast}
+                hardDropTrail={hardDropTrail}
+                isPaused={state.phase === 'paused'}
               />
               <ComboIndicator label={comboLabel} trigger={comboTrigger} />
+              <ScorePopup points={scorePopup.points} label={scorePopup.label} trigger={scorePopup.trigger} />
+              {countdown !== null && (
+                <div className="tc-countdown-overlay" aria-live="assertive">
+                  {countdown > 0 ? (
+                    <span className="tc-countdown-number" key={countdown}>{countdown}</span>
+                  ) : (
+                    <span className="tc-countdown-go" key="go">GO!</span>
+                  )}
+                </div>
+              )}
+              {levelUpCelebration !== null && (
+                <div className="tc-levelup-overlay" key={`levelup-${levelUpCelebration}`}>
+                  <span className="tc-levelup-text">LEVEL {levelUpCelebration}!</span>
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const angle = (i / 12) * Math.PI * 2;
+                    const dist = 80 + Math.random() * 60;
+                    const x = Math.cos(angle) * dist;
+                    const y = Math.sin(angle) * dist;
+                    const colors = ['#ffd700', '#ff6b6b', '#4dff4d', '#00d4ff', '#b44dff', '#ff9f43'];
+                    return (
+                      <div
+                        key={i}
+                        className="tc-levelup-confetti"
+                        style={{
+                          top: '50%',
+                          left: '50%',
+                          backgroundColor: colors[i % colors.length],
+                          animationDelay: `${i * 0.05}s`,
+                          ['--confetti-x' as string]: `${x}px`,
+                          ['--confetti-y' as string]: `${y}px`,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
             <TouchControls onAction={handleAction} />
           </div>
@@ -599,6 +746,8 @@ export default function TetrisClassic() {
           isNewHighScore={isNewHighScore}
         />
       )}
+
+      <TutorialOverlay />
     </div>
   );
 }

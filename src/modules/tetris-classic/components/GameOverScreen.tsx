@@ -85,6 +85,16 @@ export function GameOverScreen({ stats, onRetry, onMenu, isNewHighScore }: GameO
   return (
     <div className="tc-gameover-overlay" role="dialog" aria-label="Game over">
       <div className="tc-gameover-content">
+        {isNewHighScore && (
+          <>
+            <div className="tc-new-record" aria-label="New record">
+              <div className="tc-new-record-stars" aria-hidden="true">&#x2726; &#x2605; &#x2726;</div>
+              NEW RECORD!
+              <div className="tc-new-record-stars" aria-hidden="true">&#x2726; &#x2605; &#x2726;</div>
+            </div>
+          </>
+        )}
+
         <h2 className="tc-gameover-title">
           {isNewHighScore ? 'New High Score!' : 'Game Over!'}
         </h2>
@@ -109,20 +119,24 @@ export function GameOverScreen({ stats, onRetry, onMenu, isNewHighScore }: GameO
             <span className="tc-gameover-stat-value">{stats.lines}</span>
           </div>
           <div className="tc-gameover-stat">
+            <span className="tc-gameover-stat-label">Pieces</span>
+            <span className="tc-gameover-stat-value">{stats.piecesPlaced}</span>
+          </div>
+          <div className="tc-gameover-stat">
             <span className="tc-gameover-stat-label">Tetrises</span>
             <span className="tc-gameover-stat-value">{stats.tetrises}</span>
           </div>
           <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Max Combo</span>
+            <span className="tc-gameover-stat-label">T-Spins</span>
+            <span className="tc-gameover-stat-value">{stats.tSpins}</span>
+          </div>
+          <div className="tc-gameover-stat">
+            <span className="tc-gameover-stat-label">Best Combo</span>
             <span className="tc-gameover-stat-value">{stats.maxCombo}x</span>
           </div>
           <div className="tc-gameover-stat">
             <span className="tc-gameover-stat-label">Time</span>
             <span className="tc-gameover-stat-value">{minutes}:{seconds.toString().padStart(2, '0')}</span>
-          </div>
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Pieces</span>
-            <span className="tc-gameover-stat-value">{stats.piecesPlaced}</span>
           </div>
         </div>
 
