@@ -12,8 +12,6 @@ import type {
   GameStats,
 } from './engine/types';
 import {
-  GRID_COLS,
-  GRID_ROWS,
   LOCK_DELAY_MS,
   CLEAR_ANIM_MS,
   NEXT_PIECES_COUNT,
@@ -563,7 +561,6 @@ export default function TetrisClassic() {
               <GameBoard
                 grid={state.grid}
                 activePiece={state.activePiece}
-                ghostY={state.ghostY}
                 clearingLines={state.clearingLines}
                 clearAnimProgress={clearProgress}
                 showGhost={settings.ghostPiece}

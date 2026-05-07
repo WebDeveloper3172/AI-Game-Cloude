@@ -12,7 +12,7 @@ import { getGhostCells } from './GhostPiece';
 interface GameBoardProps {
   grid: Grid;
   activePiece: ActivePiece | null;
-  ghostY: number;
+
   clearingLines: number[];
   clearAnimProgress: number; // 0..1
   showGhost: boolean;
@@ -230,7 +230,6 @@ function drawCell(
 export function GameBoard({
   grid,
   activePiece,
-  ghostY,
   clearingLines,
   clearAnimProgress,
   showGhost,
