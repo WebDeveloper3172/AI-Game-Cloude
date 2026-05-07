@@ -474,6 +474,74 @@
   color: var(--color-text-secondary);
 }
 
+/* ===== Pause Audio Settings ===== */
+.tc-pause-audio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  text-align: left;
+}
+
+.tc-pause-audio-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+}
+
+.tc-pause-audio-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 50px;
+}
+
+.tc-pause-audio-value {
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  min-width: 36px;
+  text-align: right;
+}
+
+.tc-pause-slider {
+  flex: 1;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.tc-pause-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+}
+
+.tc-pause-toggle {
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-left: auto;
+}
+
+.tc-pause-toggle.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
 /* ===== Game Over Screen ===== */
 .tc-gameover-overlay {
   position: fixed;

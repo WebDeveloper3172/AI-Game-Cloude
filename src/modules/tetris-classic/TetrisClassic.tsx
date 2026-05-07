@@ -100,7 +100,7 @@ export default function TetrisClassic() {
   // Hard drop trail (disabled — was causing blue column artifacts)
   const hardDropTrail = null;
 
-  const { settings } = useSettings();
+  const { settings, updateSetting } = useSettings();
   const { scores, addScore } = useHighScores();
   const announce = useAnnouncer();
   const audio = useTetrisClassicAudio(settings ?? DEFAULT_SETTINGS);
@@ -852,7 +852,13 @@ export default function TetrisClassic() {
       )}
 
       {state.phase === 'paused' && (
-        <PauseOverlay onResume={handleResume} onRestart={handleRetry} onQuit={handleQuit} />
+        <PauseOverlay
+          onResume={handleResume}
+          onRestart={handleRetry}
+          onQuit={handleQuit}
+          settings={settings}
+          onUpdateSetting={updateSetting}
+        />
       )}
 
       {state.phase === 'gameOver' && (
