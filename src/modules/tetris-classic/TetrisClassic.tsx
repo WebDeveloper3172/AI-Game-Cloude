@@ -666,6 +666,24 @@ export default function TetrisClassic() {
           </div>
 
           <div className="tc-center-panel">
+            <div className="tc-game-toolbar">
+              <button
+                className="tc-btn tc-btn-toolbar"
+                onClick={() => handleAction('pause')}
+                type="button"
+                aria-label="Pause game"
+              >
+                &#x23F8; Pause
+              </button>
+              <button
+                className="tc-btn tc-btn-toolbar"
+                onClick={handleQuit}
+                type="button"
+                aria-label="Return to menu"
+              >
+                &#x2190; Menu
+              </button>
+            </div>
             <div className="tc-board-container">
               <GameBoard
                 grid={state.grid}

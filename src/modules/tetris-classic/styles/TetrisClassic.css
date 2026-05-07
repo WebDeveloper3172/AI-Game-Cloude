@@ -667,6 +667,37 @@
   letter-spacing: 1px;
 }
 
+/* ===== Pause touch button ===== */
+.tc-touch-pause {
+  font-size: 1.2rem;
+}
+
+/* ===== Game toolbar (Pause + Menu buttons above the board) ===== */
+.tc-game-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: var(--gap-sm);
+  margin-bottom: var(--gap-sm);
+}
+
+.tc-btn-toolbar {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-secondary, #aaa);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tc-btn-toolbar:hover,
+.tc-btn-toolbar:focus-visible {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
 /* ===== Achievements on Game Over ===== */
 .tc-achievements {
   display: flex;

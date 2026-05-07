@@ -32,6 +32,7 @@ export function TouchControls({ onAction }: TouchControlsProps) {
   const moveLeft = useTouchAction(onAction, 'moveLeft');
   const softDrop = useTouchAction(onAction, 'softDrop');
   const moveRight = useTouchAction(onAction, 'moveRight');
+  const pause = useTouchAction(onAction, 'pause');
 
   return (
     <div className="tc-touch-controls" role="group" aria-label="Game controls">
@@ -100,6 +101,15 @@ export function TouchControls({ onAction }: TouchControlsProps) {
           type="button"
         >
           &#x25B6;
+        </button>
+        <button
+          className="tc-touch-btn tc-touch-pause"
+          onTouchStart={pause.onTouchStart}
+          onClick={pause.onClick}
+          aria-label="Pause game"
+          type="button"
+        >
+          &#x23F8;
         </button>
       </div>
     </div>

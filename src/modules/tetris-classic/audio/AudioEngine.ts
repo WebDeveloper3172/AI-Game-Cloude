@@ -25,6 +25,9 @@ export class TetrisAudioEngine {
   private musicPlaying = false;
   private musicPaused = false;
   private musicTimers: number[] = [];
+  private currentTrack = 0;
+  private loopsOnCurrentTrack = 0;
+  private readonly LOOPS_BEFORE_SWITCH = 3; // Switch track every 3 loops
 
   // Volume state (0-1)
   private masterVol = 0.7;
@@ -38,7 +41,13 @@ export class TetrisAudioEngine {
   // ---- Initialization ----
 
   init(): void {
-    if (this.ctx) return;
+    if (this.ctx) {
+      // Already initialized — just make sure it's running
+      if (this.ctx.state === 'suspended') {
+        void this.ctx.resume();
+      }
+      return;
+    }
     this.ctx = new AudioContext();
 
     this.masterGain = this.ctx.createGain();
@@ -52,6 +61,11 @@ export class TetrisAudioEngine {
     this.musicGain = this.ctx.createGain();
     this.musicGain.gain.value = this.musicVol;
     this.musicGain.connect(this.masterGain);
+
+    // Immediately resume if created in suspended state (browser autoplay policy)
+    if (this.ctx.state === 'suspended') {
+      void this.ctx.resume();
+    }
   }
 
   /** Ensure AudioContext is running (call after user gesture). */
@@ -367,7 +381,87 @@ export class TetrisAudioEngine {
     if (!this.ctx || !this.musicGain || this.musicPlaying) return;
     this.musicPlaying = true;
     this.musicPaused = false;
+    this.currentTrack = 0;
+    this.loopsOnCurrentTrack = 0;
     this.scheduleMusic(this.ctx.currentTime);
+  }
+
+  /** Music tracks — each has its own bass + melody patterns and BPM. */
+  private getTracks(): Array<{ bpm: number; bass: string[]; melody: string[]; bassType: OscillatorType; melodyType: OscillatorType; bassVol: number; melodyVol: number }> {
+    return [
+      {
+        // Track 1: Upbeat classic — C major, energetic
+        bpm: 140,
+        bassType: 'square', melodyType: 'square',
+        bassVol: 0.08, melodyVol: 0.06,
+        bass: [
+          'C3','C3','G3','G3', 'C3','C3','E3','E3',
+          'A3','A3','E3','E3', 'F3','F3','G3','G3',
+          'C3','C3','G3','G3', 'E3','E3','G3','G3',
+          'A3','A3','F3','F3', 'G3','G3','C3','C3',
+        ],
+        melody: [
+          'E5','D5','C5','D5', 'E5','E5','D5','C5',
+          'A4','C5','E5','C5', 'D5','C5','B4','G4',
+          'E5','D5','C5','D5', 'E5','G5','E5','D5',
+          'A4','C5','D5','E5', 'D5','C5','C5','C5',
+        ],
+      },
+      {
+        // Track 2: Funky groove — A minor, syncopated feel
+        bpm: 130,
+        bassType: 'sawtooth', melodyType: 'square',
+        bassVol: 0.06, melodyVol: 0.06,
+        bass: [
+          'A3','A3','E3','A3', 'C3','E3','A3','E3',
+          'D3','D3','A3','D3', 'F3','A3','D3','A3',
+          'G3','G3','D3','G3', 'E3','G3','B3','G3',
+          'A3','E3','C3','E3', 'A3','G3','E3','A3',
+        ],
+        melody: [
+          'A4','C5','E5','A5', 'G5','E5','C5','D5',
+          'D5','F5','A5','F5', 'E5','D5','C5','A4',
+          'G4','B4','D5','G5', 'E5','D5','B4','G4',
+          'A4','C5','E5','G5', 'A5','E5','C5','A4',
+        ],
+      },
+      {
+        // Track 3: Dreamy — G major, slower, triangle-like feel
+        bpm: 120,
+        bassType: 'triangle', melodyType: 'sine',
+        bassVol: 0.10, melodyVol: 0.08,
+        bass: [
+          'G3','G3','D3','G3', 'B3','D3','G3','D3',
+          'E3','E3','B3','E3', 'C3','E3','G3','C3',
+          'A3','A3','E3','A3', 'D3','A3','F3','D3',
+          'G3','D3','B3','G3', 'C3','D3','G3','G3',
+        ],
+        melody: [
+          'B4','D5','G5','D5', 'B4','G4','A4','B4',
+          'E5','G5','B5','G5', 'E5','D5','C5','B4',
+          'A4','C5','E5','A5', 'G5','E5','D5','C5',
+          'B4','D5','G5','B5', 'A5','G5','D5','G4',
+        ],
+      },
+      {
+        // Track 4: Intense — D minor, faster, driving
+        bpm: 155,
+        bassType: 'square', melodyType: 'sawtooth',
+        bassVol: 0.07, melodyVol: 0.05,
+        bass: [
+          'D3','D3','A3','D3', 'F3','D3','A3','F3',
+          'G3','G3','D3','G3', 'B3','G3','D3','B3',
+          'C3','C3','G3','C3', 'E3','C3','G3','E3',
+          'D3','A3','F3','D3', 'A3','D3','F3','A3',
+        ],
+        melody: [
+          'D5','F5','A5','D5', 'C5','A4','F4','A4',
+          'G4','B4','D5','G5', 'F5','D5','B4','G4',
+          'C5','E5','G5','C6', 'B5','G5','E5','C5',
+          'D5','A5','F5','D5', 'E5','F5','A5','D5',
+        ],
+      },
+    ];
   }
 
   private scheduleMusic(startAt: number): void {
@@ -379,55 +473,35 @@ export class TetrisAudioEngine {
     }
     this.musicTimers = [];
 
-    const bpm = 140;
-    const beatDur = 60 / bpm; // ~0.4286s per beat
+    const tracks = this.getTracks();
+    const track = tracks[this.currentTrack % tracks.length];
+    const beatDur = 60 / track.bpm;
     const barDur = beatDur * 4;
-
-    // 8-bar loop total
     const loopDur = barDur * 8;
 
-    // Bass line: one note per beat, 8 bars (32 beats)
-    const bassPattern: string[] = [
-      // Bar 1-2: C3 pattern
-      'C3', 'C3', 'G3', 'G3',  'C3', 'C3', 'E3', 'E3',
-      // Bar 3-4: A3/F3 pattern
-      'A3', 'A3', 'E3', 'E3',  'F3', 'F3', 'G3', 'G3',
-      // Bar 5-6: repeat with variation
-      'C3', 'C3', 'G3', 'G3',  'E3', 'E3', 'G3', 'G3',
-      // Bar 7-8: build and resolve
-      'A3', 'A3', 'F3', 'F3',  'G3', 'G3', 'C3', 'C3',
-    ];
-
-    // Melody: one note per beat, pentatonic feel, 32 beats
-    const melodyPattern: string[] = [
-      // Bar 1-2
-      'E5', 'D5', 'C5', 'D5',  'E5', 'E5', 'D5', 'C5',
-      // Bar 3-4
-      'A4', 'C5', 'E5', 'C5',  'D5', 'C5', 'B4', 'G4',
-      // Bar 5-6
-      'E5', 'D5', 'C5', 'D5',  'E5', 'G5', 'E5', 'D5',
-      // Bar 7-8
-      'A4', 'C5', 'D5', 'E5',  'D5', 'C5', 'C5', 'C5',
-    ];
-
     // Schedule bass
-    for (let i = 0; i < bassPattern.length; i++) {
+    for (let i = 0; i < track.bass.length; i++) {
       const noteStart = startAt + i * beatDur;
       const noteDur = beatDur * 0.8;
-      this.scheduleMusicNote('square', freq(bassPattern[i]), noteStart, noteDur, 0.08);
+      this.scheduleMusicNote(track.bassType, freq(track.bass[i]), noteStart, noteDur, track.bassVol);
     }
 
     // Schedule melody
-    for (let i = 0; i < melodyPattern.length; i++) {
+    for (let i = 0; i < track.melody.length; i++) {
       const noteStart = startAt + i * beatDur;
       const noteDur = beatDur * 0.7;
-      this.scheduleMusicNote('square', freq(melodyPattern[i]), noteStart, noteDur, 0.06);
+      this.scheduleMusicNote(track.melodyType, freq(track.melody[i]), noteStart, noteDur, track.melodyVol);
     }
 
-    // Schedule next loop
+    // Schedule next loop — switch track after N loops
     const msUntilNext = (loopDur - 0.1) * 1000;
     const timerId = window.setTimeout(() => {
       if (this.musicPlaying && !this.musicPaused) {
+        this.loopsOnCurrentTrack++;
+        if (this.loopsOnCurrentTrack >= this.LOOPS_BEFORE_SWITCH) {
+          this.loopsOnCurrentTrack = 0;
+          this.currentTrack = (this.currentTrack + 1) % tracks.length;
+        }
         this.scheduleMusic(startAt + loopDur);
       }
     }, msUntilNext);
@@ -460,9 +534,9 @@ export class TetrisAudioEngine {
   }
 
   stopMusic(fade = false): void {
-    if (!this.musicPlaying) return;
     this.musicPlaying = false;
     this.musicPaused = false;
+    this.loopsOnCurrentTrack = 0;
 
     // Clear scheduled timers
     for (const id of this.musicTimers) {
@@ -470,16 +544,22 @@ export class TetrisAudioEngine {
     }
     this.musicTimers = [];
 
-    if (fade && this.musicGain) {
+    if (fade && this.musicGain && this.ctx) {
       const t = this.now();
+      this.musicGain.gain.cancelScheduledValues(t);
       this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, t);
       this.musicGain.gain.linearRampToValueAtTime(0, t + 0.5);
       // Restore volume after fade
       setTimeout(() => {
         if (this.musicGain) {
+          this.musicGain.gain.cancelScheduledValues(0);
           this.musicGain.gain.value = this.musicVol;
         }
       }, 600);
+    } else if (this.musicGain) {
+      // Instant stop — reset gain immediately
+      this.musicGain.gain.cancelScheduledValues(0);
+      this.musicGain.gain.value = this.musicVol;
     }
   }
 
