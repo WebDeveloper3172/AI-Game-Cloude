@@ -1,8 +1,10 @@
 /**
  * Settings panel with volume, SFX, accessibility toggles, and theme selector.
  */
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../modules/tetris-classic/hooks/useLocalStorage';
+import { getAudioEngine } from '../modules/tetris-classic/audio/AudioEngine';
 import type { ThemeName } from '../modules/tetris-classic/engine/types';
 
 const THEMES: { id: ThemeName; label: string; description: string }[] = [
@@ -14,6 +16,21 @@ const THEMES: { id: ThemeName; label: string; description: string }[] = [
 export function SettingsPanel() {
   const navigate = useNavigate();
   const { settings, updateSetting } = useSettings();
+
+  // Ensure music is playing (continues from main menu via singleton)
+  useEffect(() => {
+    const engine = getAudioEngine();
+    engine.init();
+    engine.resume();
+    engine.startMusic();
+  }, []);
+
+  // Sync volume/music toggle changes instantly
+  useEffect(() => {
+    const engine = getAudioEngine();
+    engine.setMasterVolume(settings.volume);
+    engine.setMusicVolume(settings.musicEnabled ? settings.volume : 0);
+  }, [settings.volume, settings.musicEnabled]);
 
   return (
     <div className="settings-panel">

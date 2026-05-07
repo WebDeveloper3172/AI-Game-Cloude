@@ -3,6 +3,8 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { useMemo, useState, useEffect } from 'react';
+import { getAudioEngine } from '../modules/tetris-classic/audio/AudioEngine';
+import { useSettings } from '../modules/tetris-classic/hooks/useLocalStorage';
 
 /** Get today's date string for daily challenge tracking */
 function getTodayStr(): string {
@@ -40,6 +42,7 @@ const FALLING_PIECES = [
 
 export function MainMenu() {
   const navigate = useNavigate();
+  const { settings } = useSettings();
   const [daily, setDaily] = useState<DailyProgress>(getDailyProgress);
   const DAILY_GOAL = 20;
 
@@ -47,6 +50,24 @@ export function MainMenu() {
   useEffect(() => {
     setDaily(getDailyProgress());
   }, []);
+
+  // Start music on mount (continues between pages via singleton)
+  useEffect(() => {
+    const engine = getAudioEngine();
+    engine.init();
+    engine.resume();
+    engine.setMasterVolume(settings.volume);
+    engine.setMusicVolume(settings.musicEnabled ? settings.volume : 0);
+    engine.startMusic();
+    // No cleanup — music continues when navigating to other pages
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync volume changes in real time
+  useEffect(() => {
+    const engine = getAudioEngine();
+    engine.setMasterVolume(settings.volume);
+    engine.setMusicVolume(settings.musicEnabled ? settings.volume : 0);
+  }, [settings.volume, settings.musicEnabled]);
 
   const fallingBlocks = useMemo(() => (
     <div className="main-menu-falling-bg" aria-hidden="true">

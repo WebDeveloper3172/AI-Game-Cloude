@@ -376,12 +376,7 @@ export default function TetrisClassic() {
 
   const gameLoop = useGameLoop(gameTick);
 
-  // ---- Cleanup audio on unmount ----
-  useEffect(() => {
-    return () => {
-      audio.stopMusic();
-    };
-  }, [audio]);
+  // Music continues between pages — no cleanup needed on unmount
 
   // ---- Cleanup countdown/levelup timers on unmount ----
   useEffect(() => {
@@ -481,7 +476,7 @@ export default function TetrisClassic() {
         if (prev.phase === 'playing') {
           gameLoop.stop();
           audio.playPause();
-          audio.pauseMusic();
+          // Music keeps playing during pause
           // Pause countdown if active
           if (countdownTimerRef.current !== null) {
             window.clearTimeout(countdownTimerRef.current);
@@ -523,7 +518,6 @@ export default function TetrisClassic() {
             resumeCountdown(countdown);
           } else {
             gameLoop.start();
-            audio.resumeMusic();
           }
           audio.playResume();
           return { ...prev, phase: 'playing' as GamePhase };
@@ -698,13 +692,12 @@ export default function TetrisClassic() {
       resumeCountdown(countdown);
     } else {
       gameLoop.start();
-      audio.resumeMusic();
     }
   }, [gameLoop, audio, countdown]);
 
   const handleQuit = useCallback(() => {
     gameLoop.stop();
-    audio.stopMusic();
+    // Don't stop music — menu will continue playing it
     if (countdownTimerRef.current !== null) {
       window.clearTimeout(countdownTimerRef.current);
       countdownTimerRef.current = null;
@@ -739,29 +732,7 @@ export default function TetrisClassic() {
     <div className="tc-container" data-high-contrast={settings.highContrast || undefined} data-theme={settings.theme || 'dark'}>
       <BackgroundParticles />
       {state.phase === 'idle' && (
-        <div className="tc-start-screen">
-          <h1 className="tc-title">Classic Tetris</h1>
-          <p className="tc-subtitle">Stack blocks, clear lines, have fun!</p>
-          <button
-            className="tc-btn tc-btn-primary tc-btn-large tc-btn-play"
-            onClick={startGame}
-            type="button"
-            autoFocus
-          >
-            Play!
-          </button>
-          <div className="tc-controls-help">
-            <h3>Controls</h3>
-            <ul>
-              <li><kbd>&larr;</kbd> <kbd>&rarr;</kbd> Move</li>
-              <li><kbd>&uarr;</kbd> Rotate</li>
-              <li><kbd>&darr;</kbd> Soft Drop</li>
-              <li><kbd>Space</kbd> Hard Drop</li>
-              <li><kbd>C</kbd> Hold</li>
-              <li><kbd>P</kbd> / <kbd>Esc</kbd> Pause</li>
-            </ul>
-          </div>
-        </div>
+        <TutorialOverlay onComplete={() => startGame()} />
       )}
 
       {(state.phase === 'playing' || state.phase === 'paused') && (
@@ -870,7 +841,6 @@ export default function TetrisClassic() {
         />
       )}
 
-      <TutorialOverlay />
     </div>
   );
 }

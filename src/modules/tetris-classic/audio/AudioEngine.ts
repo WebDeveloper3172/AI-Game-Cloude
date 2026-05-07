@@ -379,12 +379,24 @@ export class TetrisAudioEngine {
    * Bass (square wave) + Melody (square wave), ~140 BPM.
    */
   startMusic(): void {
-    if (!this.ctx || !this.musicGain || this.musicPlaying) return;
+    if (!this.ctx || !this.musicGain) return;
+    // If already playing, don't start again (prevents doubling)
+    if (this.musicPlaying && !this.musicPaused) return;
+    // If was paused, resume instead
+    if (this.musicPlaying && this.musicPaused) {
+      this.resumeMusic();
+      return;
+    }
     this.musicPlaying = true;
     this.musicPaused = false;
     this.currentTrack = 0;
     this.loopsOnCurrentTrack = 0;
     this.scheduleMusic(this.ctx.currentTime);
+  }
+
+  /** Check if music is currently playing. */
+  isMusicPlaying(): boolean {
+    return this.musicPlaying && !this.musicPaused;
   }
 
   /** Music tracks — each has its own bass + melody patterns and BPM. */
