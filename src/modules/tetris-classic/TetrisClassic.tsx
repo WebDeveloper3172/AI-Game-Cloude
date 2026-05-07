@@ -165,6 +165,9 @@ export default function TetrisClassic() {
   const lastMoveWasRotation = useRef(false);
 
   // ---- Spawn a new piece ----
+  // NOTE: This consumes from the randomizer (side effect) so it must NOT be called
+  // inside a setState updater function — React StrictMode double-invokes those,
+  // which would consume pieces twice and desync the NEXT preview.
   const spawnPiece = useCallback((gs: GameState): GameState => {
     let rand = randomizerRef.current;
     if (!rand) {
@@ -172,6 +175,7 @@ export default function TetrisClassic() {
       randomizerRef.current = rand;
     }
 
+    // Consume next piece from the queue
     const type = rand.next();
     const pos = getSpawnPosition(type);
     const nextPieces = rand.peek(NEXT_PIECES_COUNT);
@@ -449,12 +453,50 @@ export default function TetrisClassic() {
           gameLoop.stop();
           audio.playPause();
           audio.pauseMusic();
+          // Pause countdown if active
+          if (countdownTimerRef.current !== null) {
+            window.clearTimeout(countdownTimerRef.current);
+            countdownTimerRef.current = null;
+          }
           return { ...prev, phase: 'paused' as GamePhase };
         }
         if (prev.phase === 'paused') {
-          gameLoop.start();
+          // If countdown was active, restart it from current value
+          if (countdown !== null) {
+            const resumeCountdown = (value: number) => {
+              if (value > 1) {
+                countdownTimerRef.current = window.setTimeout(() => {
+                  setCountdown(value - 1);
+                  audio.playCountdownTick();
+                  resumeCountdown(value - 1);
+                }, 800);
+              } else if (value === 1) {
+                countdownTimerRef.current = window.setTimeout(() => {
+                  setCountdown(0);
+                  audio.playCountdownGo();
+                  countdownTimerRef.current = window.setTimeout(() => {
+                    setCountdown(null);
+                    gameLoop.start();
+                    audio.startMusic();
+                    countdownTimerRef.current = null;
+                  }, 400);
+                }, 800);
+              } else {
+                // Was on GO!, just finish
+                countdownTimerRef.current = window.setTimeout(() => {
+                  setCountdown(null);
+                  gameLoop.start();
+                  audio.startMusic();
+                  countdownTimerRef.current = null;
+                }, 400);
+              }
+            };
+            resumeCountdown(countdown);
+          } else {
+            gameLoop.start();
+            audio.resumeMusic();
+          }
           audio.playResume();
-          audio.resumeMusic();
           return { ...prev, phase: 'playing' as GamePhase };
         }
         return prev;
@@ -593,20 +635,66 @@ export default function TetrisClassic() {
   // ---- Pause/Resume ----
   const handleResume = useCallback(() => {
     setState(prev => ({ ...prev, phase: 'playing' as GamePhase }));
-    gameLoop.start();
     audio.playResume();
-    audio.resumeMusic();
-  }, [gameLoop, audio]);
+
+    // If countdown was paused, resume it instead of game loop
+    if (countdown !== null) {
+      const resumeCountdown = (value: number) => {
+        if (value > 1) {
+          countdownTimerRef.current = window.setTimeout(() => {
+            setCountdown(value - 1);
+            audio.playCountdownTick();
+            resumeCountdown(value - 1);
+          }, 800);
+        } else if (value === 1) {
+          countdownTimerRef.current = window.setTimeout(() => {
+            setCountdown(0);
+            audio.playCountdownGo();
+            countdownTimerRef.current = window.setTimeout(() => {
+              setCountdown(null);
+              gameLoop.start();
+              audio.startMusic();
+              countdownTimerRef.current = null;
+            }, 400);
+          }, 800);
+        } else {
+          countdownTimerRef.current = window.setTimeout(() => {
+            setCountdown(null);
+            gameLoop.start();
+            audio.startMusic();
+            countdownTimerRef.current = null;
+          }, 400);
+        }
+      };
+      resumeCountdown(countdown);
+    } else {
+      gameLoop.start();
+      audio.resumeMusic();
+    }
+  }, [gameLoop, audio, countdown]);
 
   const handleQuit = useCallback(() => {
     gameLoop.stop();
     audio.stopMusic();
+    if (countdownTimerRef.current !== null) {
+      window.clearTimeout(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    setCountdown(null);
     navigate('/');
   }, [gameLoop, audio, navigate]);
 
   const handleRetry = useCallback(() => {
+    // Stop everything before restarting
+    gameLoop.stop();
+    audio.stopMusic();
+    if (countdownTimerRef.current !== null) {
+      window.clearTimeout(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    setCountdown(null);
     startGame();
-  }, [startGame]);
+  }, [startGame, gameLoop, audio]);
 
   const handleMenu = useCallback(() => {
     gameLoop.stop();

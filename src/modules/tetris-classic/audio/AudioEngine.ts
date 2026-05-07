@@ -25,6 +25,7 @@ export class TetrisAudioEngine {
   private musicPlaying = false;
   private musicPaused = false;
   private musicTimers: number[] = [];
+  private musicOscillators: OscillatorNode[] = []; // Track active oscillators to stop them
   private currentTrack = 0;
   private loopsOnCurrentTrack = 0;
   private readonly LOOPS_BEFORE_SWITCH = 3; // Switch track every 3 loops
@@ -531,9 +532,25 @@ export class TetrisAudioEngine {
     g.connect(this.musicGain);
     o.start(start);
     o.stop(start + dur);
+
+    // Track oscillator so we can kill it on pause/stop
+    this.musicOscillators.push(o);
+    o.onended = () => {
+      const idx = this.musicOscillators.indexOf(o);
+      if (idx >= 0) this.musicOscillators.splice(idx, 1);
+    };
   }
 
-  stopMusic(fade = false): void {
+  /** Immediately stop all active music oscillators. */
+  private killMusicOscillators(): void {
+    const now = this.now();
+    for (const o of this.musicOscillators) {
+      try { o.stop(now); } catch { /* already stopped */ }
+    }
+    this.musicOscillators = [];
+  }
+
+  stopMusic(_fade = false): void {
     this.musicPlaying = false;
     this.musicPaused = false;
     this.loopsOnCurrentTrack = 0;
@@ -544,20 +561,10 @@ export class TetrisAudioEngine {
     }
     this.musicTimers = [];
 
-    if (fade && this.musicGain && this.ctx) {
-      const t = this.now();
-      this.musicGain.gain.cancelScheduledValues(t);
-      this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, t);
-      this.musicGain.gain.linearRampToValueAtTime(0, t + 0.5);
-      // Restore volume after fade
-      setTimeout(() => {
-        if (this.musicGain) {
-          this.musicGain.gain.cancelScheduledValues(0);
-          this.musicGain.gain.value = this.musicVol;
-        }
-      }, 600);
-    } else if (this.musicGain) {
-      // Instant stop — reset gain immediately
+    // Kill all active oscillators
+    this.killMusicOscillators();
+
+    if (this.musicGain) {
       this.musicGain.gain.cancelScheduledValues(0);
       this.musicGain.gain.value = this.musicVol;
     }
@@ -573,11 +580,13 @@ export class TetrisAudioEngine {
     }
     this.musicTimers = [];
 
-    // Quick fade to avoid pops
+    // Stop all active music oscillators immediately
+    this.killMusicOscillators();
+
+    // Reset gain for next resume
     if (this.musicGain) {
-      const t = this.now();
-      this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, t);
-      this.musicGain.gain.linearRampToValueAtTime(0, t + 0.05);
+      this.musicGain.gain.cancelScheduledValues(0);
+      this.musicGain.gain.value = 0;
     }
   }
 
@@ -585,14 +594,13 @@ export class TetrisAudioEngine {
     if (!this.musicPlaying || !this.musicPaused) return;
     this.musicPaused = false;
 
-    // Restore volume
+    // Restore volume immediately before scheduling new notes
     if (this.musicGain) {
-      const t = this.now();
-      this.musicGain.gain.setValueAtTime(0.001, t);
-      this.musicGain.gain.linearRampToValueAtTime(this.musicVol, t + 0.05);
+      this.musicGain.gain.cancelScheduledValues(0);
+      this.musicGain.gain.value = this.musicVol;
     }
 
-    // Restart music from the beginning of next bar for simplicity
+    // Schedule fresh music (old oscillators were killed on pause)
     this.scheduleMusic(this.now());
   }
 
