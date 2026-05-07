@@ -173,23 +173,52 @@ function drawCell(
   pattern: string,
   highContrast: boolean,
   alpha: number = 1,
+  isFlash: boolean = false,
 ) {
   const px = x * CELL_SIZE;
   const py = y * CELL_SIZE;
 
   ctx.globalAlpha = alpha;
+
+  // 1. Base fill
   ctx.fillStyle = color;
   ctx.fillRect(px + 1, py + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
-  // Highlight (top edge)
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
-  ctx.fillRect(px + 1, py + 1, CELL_SIZE - 2, 4);
+  // Skip all 3D shadow/highlight layers for ghost cells (alpha < 1) and flash frames
+  if (alpha >= 1 && !isFlash) {
+    const hcMul = highContrast ? 1.5 : 1;
 
-  // Shadow (bottom edge)
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.fillRect(px + 1, py + CELL_SIZE - 5, CELL_SIZE - 2, 4);
+    // 2. Inner gradient — top half lighter for subtle convexity
+    ctx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.08 * hcMul)})`;
+    ctx.fillRect(px + 1, py + 1, CELL_SIZE - 2, (CELL_SIZE - 2) / 2);
 
-  // Pattern overlay for colorblind support
+    // 3. Left highlight
+    ctx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.3 * hcMul)})`;
+    ctx.fillRect(px + 1, py + 1, 3, CELL_SIZE - 2);
+
+    // 4. Top highlight
+    ctx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.3 * hcMul)})`;
+    ctx.fillRect(px + 1, py + 1, CELL_SIZE - 2, 4);
+
+    // 5. Right shadow
+    ctx.fillStyle = `rgba(0,0,0,${Math.min(1, 0.35 * hcMul)})`;
+    ctx.fillRect(px + CELL_SIZE - 4, py + 1, 3, CELL_SIZE - 2);
+
+    // 6. Bottom shadow
+    ctx.fillStyle = `rgba(0,0,0,${Math.min(1, 0.35 * hcMul)})`;
+    ctx.fillRect(px + 1, py + CELL_SIZE - 5, CELL_SIZE - 2, 4);
+
+    // 7. Inner catch-light — 2x2 bright spot at top-left
+    ctx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.4 * hcMul)})`;
+    ctx.fillRect(px + 3, py + 3, 2, 2);
+
+    // 8. Cell border — thin outline for edge definition
+    ctx.strokeStyle = `rgba(0,0,0,${Math.min(1, 0.15 * hcMul)})`;
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(px + 0.5, py + 0.5, CELL_SIZE - 1, CELL_SIZE - 1);
+  }
+
+  // 9. Pattern overlay for colorblind support
   if (highContrast) {
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
     drawPattern(ctx, pattern, px, py, CELL_SIZE);
@@ -272,7 +301,7 @@ export function GameBoard({
           if (clearingSet.has(r)) {
             // Flash animation for clearing lines
             const flash = Math.sin(clearAnimProgress * Math.PI * 3) > 0;
-            drawCell(ctx, c, r, flash ? '#ffffff' : def.color, def.pattern, highContrast, 1 - clearAnimProgress * 0.5);
+            drawCell(ctx, c, r, flash ? '#ffffff' : def.color, def.pattern, highContrast, 1 - clearAnimProgress * 0.5, flash);
           } else {
             drawCell(ctx, c, r, def.color, def.pattern, highContrast);
           }

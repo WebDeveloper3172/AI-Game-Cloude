@@ -36,18 +36,57 @@ export function HoldPiece({ piece, used }: HoldPieceProps) {
     const offX = (w - shapeW) / 2;
     const offY = (h - shapeH) / 2;
 
-    ctx.globalAlpha = used ? 0.4 : 1.0;
-    ctx.fillStyle = def.color;
+    const baseAlpha = used ? 0.4 : 1.0;
+    ctx.globalAlpha = baseAlpha;
+
+    // Scale shadow dimensions proportionally to cell size
+    const topH = Math.round(HOLD_CELL * 4 / 30);
+    const leftW = Math.round(HOLD_CELL * 3 / 30);
+    const bottomH = Math.round(HOLD_CELL * 4 / 30);
+    const rightW = Math.round(HOLD_CELL * 3 / 30);
+    const catchSize = Math.max(1, Math.round(HOLD_CELL * 2 / 30));
 
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
         if (shape[r][c]) {
           const x = offX + c * HOLD_CELL;
           const y = offY + r * HOLD_CELL;
-          ctx.fillRect(x + 1, y + 1, HOLD_CELL - 2, HOLD_CELL - 2);
-          ctx.fillStyle = 'rgba(255,255,255,0.3)';
-          ctx.fillRect(x + 1, y + 1, HOLD_CELL - 2, 3);
+
+          // 1. Base fill
           ctx.fillStyle = def.color;
+          ctx.fillRect(x + 1, y + 1, HOLD_CELL - 2, HOLD_CELL - 2);
+
+          // Skip 3D layers when dimmed (used state)
+          if (!used) {
+            // 2. Inner gradient — top half lighter
+            ctx.fillStyle = 'rgba(255,255,255,0.08)';
+            ctx.fillRect(x + 1, y + 1, HOLD_CELL - 2, (HOLD_CELL - 2) / 2);
+
+            // 3. Left highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.fillRect(x + 1, y + 1, leftW, HOLD_CELL - 2);
+
+            // 4. Top highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.fillRect(x + 1, y + 1, HOLD_CELL - 2, topH);
+
+            // 5. Right shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            ctx.fillRect(x + HOLD_CELL - 1 - rightW, y + 1, rightW, HOLD_CELL - 2);
+
+            // 6. Bottom shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            ctx.fillRect(x + 1, y + HOLD_CELL - 1 - bottomH, HOLD_CELL - 2, bottomH);
+
+            // 7. Inner catch-light
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fillRect(x + 3, y + 3, catchSize, catchSize);
+
+            // 8. Cell border
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(x + 0.5, y + 0.5, HOLD_CELL - 1, HOLD_CELL - 1);
+          }
         }
       }
     }
