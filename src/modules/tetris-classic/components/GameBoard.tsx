@@ -254,17 +254,8 @@ export function GameBoard({
   const [shaking, setShaking] = useState(false);
   const [tetrisFlash, setTetrisFlash] = useState(false);
 
-  // Hard drop trail fade state
-  const trailRef = useRef<{ trail: HardDropTrail; startTime: number } | null>(null);
-  const prevTrailRef = useRef<HardDropTrail | null>(null);
-
-  // Track hard drop trail changes
-  useEffect(() => {
-    if (hardDropTrail && hardDropTrail !== prevTrailRef.current) {
-      trailRef.current = { trail: hardDropTrail, startTime: performance.now() };
-    }
-    prevTrailRef.current = hardDropTrail ?? null;
-  }, [hardDropTrail]);
+  // Hard drop trail — disabled (was causing persistent blue columns)
+  void hardDropTrail; // consume prop to avoid unused warning
 
   // Spawn particles when new clearing lines appear
   useEffect(() => {
@@ -377,26 +368,7 @@ export function GameBoard({
       drawParticles(ctx, particlesRef.current);
     }
 
-    // Feature 2: Hard drop trail effect
-    if (trailRef.current) {
-      const elapsed = performance.now() - trailRef.current.startTime;
-      const TRAIL_DURATION = 150; // ms
-      if (elapsed < TRAIL_DURATION) {
-        const alpha = 0.2 * (1 - elapsed / TRAIL_DURATION);
-        const { cols, fromY, toY, color } = trailRef.current.trail;
-        ctx.fillStyle = color;
-        ctx.globalAlpha = alpha;
-        for (const col of cols) {
-          const px = col * CELL_SIZE + 4;
-          const py = fromY * CELL_SIZE;
-          const h = (toY - fromY) * CELL_SIZE;
-          ctx.fillRect(px, py, CELL_SIZE - 8, h);
-        }
-        ctx.globalAlpha = 1;
-      } else {
-        trailRef.current = null;
-      }
-    }
+    // Hard drop trail removed — was causing visual artifacts
   // Note: ghostY is intentionally excluded — ghost rendering uses getGhostCells() directly
   }, [grid, activePiece, clearingLines, clearAnimProgress, showGhost, highContrast]);
 

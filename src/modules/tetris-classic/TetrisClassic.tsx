@@ -18,7 +18,7 @@ import {
   DEFAULT_SETTINGS,
 } from './engine/types';
 import { createGrid, checkCollision, placePiece, findFullRows, clearRows, getGhostY, isPieceOnGround } from './engine/grid';
-import { getSpawnPosition, PIECE_DEFINITIONS, getPieceCells } from './engine/pieces';
+import { getSpawnPosition } from './engine/pieces';
 import { rotateCW, rotateCCW } from './engine/rotation';
 import { calculateScore, calculateLevel, didLevelUp, softDropPoints, hardDropPoints, detectTSpin } from './engine/scoring';
 import { getGravityInterval } from './engine/gravity';
@@ -26,7 +26,6 @@ import { createRandomizer } from './engine/randomizer';
 import type { Randomizer } from './engine/randomizer';
 
 import { GameBoard } from './components/GameBoard';
-import type { HardDropTrail } from './components/GameBoard';
 import { PiecePreview } from './components/PiecePreview';
 import { HoldPiece } from './components/HoldPiece';
 import { ScorePanel } from './components/ScorePanel';
@@ -97,8 +96,8 @@ export default function TetrisClassic() {
   const [levelUpCelebration, setLevelUpCelebration] = useState<number | null>(null);
   const levelUpTimerRef = useRef<number | null>(null);
 
-  // Hard drop trail
-  const [hardDropTrail, setHardDropTrail] = useState<HardDropTrail | null>(null);
+  // Hard drop trail (disabled — was causing blue column artifacts)
+  const hardDropTrail = null;
 
   const { settings } = useSettings();
   const { scores, addScore } = useHighScores();
@@ -504,17 +503,7 @@ export default function TetrisClassic() {
         case 'hardDrop': {
           const ghostY = getGhostY(piece, gs.grid);
           const dropDist = ghostY - piece.position.y;
-          // Generate hard drop trail data
-          if (dropDist > 1) {
-            const cells = getPieceCells(piece.type, piece.rotation, piece.position);
-            const cols = [...new Set(cells.map(c => c.x))];
-            setHardDropTrail({
-              cols,
-              fromY: piece.position.y,
-              toY: ghostY,
-              color: PIECE_DEFINITIONS[piece.type].color,
-            });
-          }
+          // Hard drop trail visual removed (was causing blue column artifacts)
           gs.activePiece = { ...piece, position: { x: piece.position.x, y: ghostY } };
           gs.stats = { ...gs.stats, score: gs.stats.score + hardDropPoints(dropDist) };
           lastMoveWasRotation.current = false;
@@ -675,14 +664,6 @@ export default function TetrisClassic() {
               >
                 &#x23F8; Pause
               </button>
-              <button
-                className="tc-btn tc-btn-toolbar"
-                onClick={handleQuit}
-                type="button"
-                aria-label="Return to menu"
-              >
-                &#x2190; Menu
-              </button>
             </div>
             <div className="tc-board-container">
               <GameBoard
@@ -753,7 +734,7 @@ export default function TetrisClassic() {
       )}
 
       {state.phase === 'paused' && (
-        <PauseOverlay onResume={handleResume} onQuit={handleQuit} />
+        <PauseOverlay onResume={handleResume} onRestart={handleRetry} onQuit={handleQuit} />
       )}
 
       {state.phase === 'gameOver' && (

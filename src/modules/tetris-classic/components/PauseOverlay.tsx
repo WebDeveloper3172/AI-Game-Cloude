@@ -5,10 +5,11 @@ import { useEffect, useRef } from 'react';
 
 interface PauseOverlayProps {
   onResume: () => void;
+  onRestart: () => void;
   onQuit: () => void;
 }
 
-export function PauseOverlay({ onResume, onQuit }: PauseOverlayProps) {
+export function PauseOverlay({ onResume, onRestart, onQuit }: PauseOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Focus trap: keep focus within the overlay
@@ -68,6 +69,13 @@ export function PauseOverlay({ onResume, onQuit }: PauseOverlayProps) {
             type="button"
           >
             Resume
+          </button>
+          <button
+            className="tc-btn tc-btn-secondary"
+            onClick={onRestart}
+            type="button"
+          >
+            Restart
           </button>
           <button
             className="tc-btn tc-btn-secondary"
