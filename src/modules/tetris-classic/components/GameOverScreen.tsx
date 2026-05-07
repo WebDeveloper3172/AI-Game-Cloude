@@ -82,14 +82,25 @@ export function GameOverScreen({ stats, onRetry, onMenu, isNewHighScore }: GameO
   const encouragement = getEncouragementMessage(stats, isNewHighScore);
   const achievements = getAchievements(stats, isNewHighScore);
 
+  const statItems = [
+    { label: 'Score', value: stats.score.toLocaleString() },
+    { label: 'Level', value: String(stats.level) },
+    { label: 'Lines', value: String(stats.lines) },
+    { label: 'Pieces', value: String(stats.piecesPlaced) },
+    { label: 'Tetrises', value: String(stats.tetrises) },
+    { label: 'T-Spins', value: String(stats.tSpins) },
+    { label: 'Best Combo', value: `${stats.maxCombo}x` },
+    { label: 'Time', value: `${minutes}:${seconds.toString().padStart(2, '0')}` },
+  ];
+
   return (
-    <div className="tc-gameover-overlay" role="dialog" aria-label="Game over">
+    <div className="tc-gameover-overlay tc-gameover-crumble" role="dialog" aria-label="Game over">
       <div className="tc-gameover-content">
         {isNewHighScore && (
           <>
-            <div className="tc-new-record" aria-label="New record">
+            <div className="tc-new-record tc-new-best-glow" aria-label="New record">
               <div className="tc-new-record-stars" aria-hidden="true">&#x2726; &#x2605; &#x2726;</div>
-              NEW RECORD!
+              NEW BEST!
               <div className="tc-new-record-stars" aria-hidden="true">&#x2726; &#x2605; &#x2726;</div>
             </div>
           </>
@@ -106,38 +117,16 @@ export function GameOverScreen({ stats, onRetry, onMenu, isNewHighScore }: GameO
         </p>
 
         <div className="tc-gameover-stats">
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Score</span>
-            <span className="tc-gameover-stat-value">{stats.score.toLocaleString()}</span>
-          </div>
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Level</span>
-            <span className="tc-gameover-stat-value">{stats.level}</span>
-          </div>
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Lines</span>
-            <span className="tc-gameover-stat-value">{stats.lines}</span>
-          </div>
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Pieces</span>
-            <span className="tc-gameover-stat-value">{stats.piecesPlaced}</span>
-          </div>
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Tetrises</span>
-            <span className="tc-gameover-stat-value">{stats.tetrises}</span>
-          </div>
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">T-Spins</span>
-            <span className="tc-gameover-stat-value">{stats.tSpins}</span>
-          </div>
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Best Combo</span>
-            <span className="tc-gameover-stat-value">{stats.maxCombo}x</span>
-          </div>
-          <div className="tc-gameover-stat">
-            <span className="tc-gameover-stat-label">Time</span>
-            <span className="tc-gameover-stat-value">{minutes}:{seconds.toString().padStart(2, '0')}</span>
-          </div>
+          {statItems.map((item, i) => (
+            <div
+              className="tc-gameover-stat tc-gameover-stat-stagger"
+              key={item.label}
+              style={{ animationDelay: `${i * 100}ms` }}
+            >
+              <span className="tc-gameover-stat-label">{item.label}</span>
+              <span className="tc-gameover-stat-value">{item.value}</span>
+            </div>
+          ))}
         </div>
 
         {achievements.length > 0 && (
@@ -158,7 +147,7 @@ export function GameOverScreen({ stats, onRetry, onMenu, isNewHighScore }: GameO
 
         <div className="tc-gameover-buttons">
           <button
-            className="tc-btn tc-btn-primary tc-btn-large tc-btn-play-again"
+            className="tc-btn tc-btn-primary tc-btn-large tc-btn-play-again tc-btn-play-again-pulse"
             onClick={onRetry}
             type="button"
             autoFocus

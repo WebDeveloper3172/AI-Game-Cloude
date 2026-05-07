@@ -4,15 +4,17 @@
 import { useRef, useEffect } from 'react';
 import type { PieceType } from '../engine/types';
 import { PIECE_DEFINITIONS } from '../engine/pieces';
+import type { ThemeColors } from '../engine/themes';
 
 interface HoldPieceProps {
   piece: PieceType | null;
   used: boolean;
+  themeColors?: ThemeColors;
 }
 
 const HOLD_CELL = 22;
 
-export function HoldPiece({ piece, used }: HoldPieceProps) {
+export function HoldPiece({ piece, used, themeColors }: HoldPieceProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -30,6 +32,7 @@ export function HoldPiece({ piece, used }: HoldPieceProps) {
     if (!piece) return;
 
     const def = PIECE_DEFINITIONS[piece];
+    const pieceColor = themeColors?.pieces[piece] ?? def.color;
     const shape = def.rotations[0];
     const shapeW = shape[0].length * HOLD_CELL;
     const shapeH = shape.length * HOLD_CELL;
@@ -53,7 +56,7 @@ export function HoldPiece({ piece, used }: HoldPieceProps) {
           const y = offY + r * HOLD_CELL;
 
           // 1. Base fill
-          ctx.fillStyle = def.color;
+          ctx.fillStyle = pieceColor;
           ctx.fillRect(x + 1, y + 1, HOLD_CELL - 2, HOLD_CELL - 2);
 
           // Skip 3D layers when dimmed (used state)
@@ -91,7 +94,7 @@ export function HoldPiece({ piece, used }: HoldPieceProps) {
       }
     }
     ctx.globalAlpha = 1.0;
-  }, [piece, used]);
+  }, [piece, used, themeColors]);
 
   return (
     <div className="tc-hold-piece" aria-label={`Hold piece: ${piece ?? 'empty'}`}>

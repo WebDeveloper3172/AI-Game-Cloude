@@ -8,6 +8,7 @@ import type { Grid, ActivePiece, Cell } from '../engine/types';
 import { GRID_COLS, GRID_ROWS } from '../engine/types';
 import { PIECE_DEFINITIONS, getPieceCells } from '../engine/pieces';
 import { getGhostCells } from './GhostPiece';
+import type { ThemeColors } from '../engine/themes';
 
 export interface HardDropTrail {
   cols: number[];
@@ -26,6 +27,7 @@ interface GameBoardProps {
   highContrast: boolean;
   hardDropTrail?: HardDropTrail | null;
   isPaused?: boolean;
+  themeColors?: ThemeColors;
 }
 
 const CELL_SIZE = 30;
@@ -245,6 +247,7 @@ export function GameBoard({
   highContrast,
   hardDropTrail,
   isPaused,
+  themeColors,
 }: GameBoardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
@@ -253,6 +256,8 @@ export function GameBoard({
   const lastTimeRef = useRef<number>(0);
   const [shaking, setShaking] = useState(false);
   const [tetrisFlash, setTetrisFlash] = useState(false);
+  const [flashColor, setFlashColor] = useState<string | null>(null);
+  const [flashDuration, setFlashDuration] = useState(150);
 
   // Hard drop trail — disabled (was causing persistent blue columns)
   void hardDropTrail; // consume prop to avoid unused warning
@@ -266,17 +271,35 @@ export function GameBoard({
     ) {
       particlesRef.current = spawnParticles(clearingLines, grid);
 
-      // Trigger screen shake + golden flash for Tetris (4-line clear)
-      if (clearingLines.length >= 4) {
+      // Color-coded flash per clear type
+      const count = clearingLines.length;
+      let color: string;
+      let duration: number;
+      if (count >= 4) {
+        color = 'rgba(255,215,0,0.25)';
+        duration = 250;
         setShaking(true);
-        setTetrisFlash(true);
-        const shakeTimer = setTimeout(() => setShaking(false), 200);
-        const flashTimer = setTimeout(() => setTetrisFlash(false), 200);
-        return () => {
-          clearTimeout(shakeTimer);
-          clearTimeout(flashTimer);
-        };
+        setTimeout(() => setShaking(false), 200);
+      } else if (count === 3) {
+        color = 'rgba(0,200,255,0.2)';
+        duration = 200;
+      } else if (count === 2) {
+        color = 'rgba(0,255,100,0.15)';
+        duration = 150;
+      } else {
+        color = 'rgba(255,255,255,0.15)';
+        duration = 150;
       }
+      setFlashColor(color);
+      setFlashDuration(duration);
+      setTetrisFlash(true);
+      const flashTimer = setTimeout(() => {
+        setTetrisFlash(false);
+        setFlashColor(null);
+      }, duration);
+      return () => {
+        clearTimeout(flashTimer);
+      };
     }
     prevClearingRef.current = clearingLines;
   }, [clearingLines, grid]);
@@ -291,7 +314,7 @@ export function GameBoard({
     ctx.clearRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
     // Background
-    ctx.fillStyle = '#0a0a1a';
+    ctx.fillStyle = themeColors?.board ?? '#0a0a1a';
     ctx.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
     // Feature 4: Subtle vertical gradient — light from above
@@ -302,7 +325,7 @@ export function GameBoard({
     ctx.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
     // Grid lines
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.strokeStyle = themeColors?.gridLine ?? 'rgba(255,255,255,0.05)';
     ctx.lineWidth = 0.5;
     for (let r = 0; r <= GRID_ROWS; r++) {
       ctx.beginPath();
@@ -324,12 +347,13 @@ export function GameBoard({
         const cell: Cell = grid[r]?.[c] ?? null;
         if (cell !== null) {
           const def = PIECE_DEFINITIONS[cell];
+          const pieceColor = themeColors?.pieces[cell] ?? def.color;
           if (clearingSet.has(r)) {
             // Flash animation for clearing lines
             const flash = Math.sin(clearAnimProgress * Math.PI * 3) > 0;
-            drawCell(ctx, c, r, flash ? '#ffffff' : def.color, def.pattern, highContrast, 1 - clearAnimProgress * 0.5, flash);
+            drawCell(ctx, c, r, flash ? '#ffffff' : pieceColor, def.pattern, highContrast, 1 - clearAnimProgress * 0.5, flash);
           } else {
-            drawCell(ctx, c, r, def.color, def.pattern, highContrast);
+            drawCell(ctx, c, r, pieceColor, def.pattern, highContrast);
           }
         }
       }
@@ -338,12 +362,12 @@ export function GameBoard({
     // Draw ghost piece
     if (activePiece && showGhost) {
       const ghostCells = getGhostCells(activePiece, grid);
-      const def = PIECE_DEFINITIONS[activePiece.type];
+      const ghostColor = themeColors?.pieces[activePiece.type] ?? PIECE_DEFINITIONS[activePiece.type].color;
       for (const cell of ghostCells) {
         if (cell.y >= 0 && cell.y < GRID_ROWS) {
           const px = cell.x * CELL_SIZE;
           const py = cell.y * CELL_SIZE;
-          ctx.strokeStyle = def.color;
+          ctx.strokeStyle = ghostColor;
           ctx.lineWidth = 2;
           ctx.globalAlpha = 0.4;
           ctx.strokeRect(px + 2, py + 2, CELL_SIZE - 4, CELL_SIZE - 4);
@@ -356,9 +380,10 @@ export function GameBoard({
     if (activePiece) {
       const cells = getPieceCells(activePiece.type, activePiece.rotation, activePiece.position);
       const def = PIECE_DEFINITIONS[activePiece.type];
+      const activeColor = themeColors?.pieces[activePiece.type] ?? def.color;
       for (const cell of cells) {
         if (cell.y >= 0 && cell.y < GRID_ROWS) {
-          drawCell(ctx, cell.x, cell.y, def.color, def.pattern, highContrast);
+          drawCell(ctx, cell.x, cell.y, activeColor, def.pattern, highContrast);
         }
       }
     }
@@ -370,7 +395,7 @@ export function GameBoard({
 
     // Hard drop trail removed — was causing visual artifacts
   // Note: ghostY is intentionally excluded — ghost rendering uses getGhostCells() directly
-  }, [grid, activePiece, clearingLines, clearAnimProgress, showGhost, highContrast]);
+  }, [grid, activePiece, clearingLines, clearAnimProgress, showGhost, highContrast, themeColors]);
 
   // Particle animation loop
   useEffect(() => {
@@ -416,8 +441,16 @@ export function GameBoard({
         className={`tc-game-canvas${isPaused ? ' tc-board-blurred' : ''}`}
         aria-hidden="true"
       />
-      {/* Feature 3: Golden flash overlay on Tetris clear */}
-      {tetrisFlash && <div className="tc-tetris-flash" />}
+      {/* Color-coded flash overlay on line clear */}
+      {tetrisFlash && flashColor && (
+        <div
+          className="tc-tetris-flash"
+          style={{
+            background: flashColor,
+            animationDuration: `${flashDuration}ms`,
+          }}
+        />
+      )}
       {/* Hidden ARIA mirror for screen readers */}
       <div className="sr-only" role="status" aria-label="Tetris game board">
         {ariaDescription}

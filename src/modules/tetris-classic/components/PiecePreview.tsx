@@ -4,9 +4,11 @@
 import { useRef, useEffect } from 'react';
 import type { PieceType } from '../engine/types';
 import { PIECE_DEFINITIONS } from '../engine/pieces';
+import type { ThemeColors } from '../engine/themes';
 
 interface PiecePreviewProps {
   pieces: PieceType[];
+  themeColors?: ThemeColors;
 }
 
 const PREVIEW_CELL = 20;
@@ -66,22 +68,24 @@ function drawPieceOnCanvas(
   offsetX: number,
   offsetY: number,
   cellSize: number,
+  themeColors?: ThemeColors,
 ) {
   const def = PIECE_DEFINITIONS[type];
   const shape = def.rotations[0];
+  const color = themeColors?.pieces[type] ?? def.color;
 
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[r].length; c++) {
       if (shape[r][c]) {
         const x = offsetX + c * cellSize;
         const y = offsetY + r * cellSize;
-        drawPreviewCell(ctx, x, y, cellSize, def.color);
+        drawPreviewCell(ctx, x, y, cellSize, color);
       }
     }
   }
 }
 
-export function PiecePreview({ pieces }: PiecePreviewProps) {
+export function PiecePreview({ pieces, themeColors }: PiecePreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -102,9 +106,9 @@ export function PiecePreview({ pieces }: PiecePreviewProps) {
       const shapeW = shape[0].length * PREVIEW_CELL;
       const offsetX = (width - shapeW) / 2;
       const offsetY = i * (4 * PREVIEW_CELL + PREVIEW_PAD);
-      drawPieceOnCanvas(ctx, type, offsetX, offsetY, PREVIEW_CELL);
+      drawPieceOnCanvas(ctx, type, offsetX, offsetY, PREVIEW_CELL, themeColors);
     });
-  }, [pieces]);
+  }, [pieces, themeColors]);
 
   return (
     <div className="tc-piece-preview" aria-label="Next pieces">

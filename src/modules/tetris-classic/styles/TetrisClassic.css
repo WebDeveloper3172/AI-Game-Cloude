@@ -2,58 +2,58 @@
 
 /* ===== Theme: Neon ===== */
 .tc-container[data-theme="neon"] {
-  --tc-board-bg: #050510;
+  --tc-board-bg: #020208;
   --tc-board-border: #1a1a3a;
   --tc-i: #00ffff;
   --tc-o: #ffff00;
   --tc-t: #ff00ff;
-  --tc-s: #00ff00;
-  --tc-z: #ff0000;
-  --tc-j: #0066ff;
+  --tc-s: #00ff66;
+  --tc-z: #ff0044;
+  --tc-j: #4488ff;
   --tc-l: #ff8800;
   background: linear-gradient(180deg, #020208 0%, #080818 100%);
 }
 
 .tc-container[data-theme="neon"] .tc-board-container {
-  box-shadow: var(--shadow-lg), inset 0 0 40px rgba(0,0,0,0.5), 0 0 30px rgba(0, 255, 255, 0.1);
-  border-color: rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 40px rgba(100,0,255,0.3);
+  border-color: rgba(191,90,242,0.4);
 }
 
 .tc-container[data-theme="neon"] .tc-hold-piece,
 .tc-container[data-theme="neon"] .tc-score-panel,
 .tc-container[data-theme="neon"] .tc-piece-preview {
-  border-color: rgba(0, 255, 255, 0.2);
-  box-shadow: 0 0 8px rgba(0, 255, 255, 0.05);
+  border-color: rgba(191,90,242,0.25);
+  box-shadow: 0 0 12px rgba(100,0,255,0.15);
 }
 
 .tc-container[data-theme="neon"] .tc-stat-value {
-  text-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
+  text-shadow: 0 0 8px rgba(0,255,200,0.5);
+  color: #00ffc8;
 }
 
 /* ===== Theme: Pastel ===== */
 .tc-container[data-theme="pastel"] {
-  --tc-board-bg: #1a1a2e;
-  --tc-board-border: #3a3a5e;
-  --tc-i: #89CFF0;
-  --tc-o: #FDFD96;
-  --tc-t: #CDB4DB;
-  --tc-s: #B5EAD7;
-  --tc-z: #FF9AA2;
-  --tc-j: #A2D2FF;
-  --tc-l: #FFDAC1;
-  background: linear-gradient(180deg, #141428 0%, #1e1e3a 100%);
+  --tc-board-bg: #0d0d20;
+  --tc-board-border: #3a3a60;
+  --tc-i: #7ec8e3;
+  --tc-o: #e8d06e;
+  --tc-t: #b088cc;
+  --tc-s: #6ec4a0;
+  --tc-z: #e07078;
+  --tc-j: #6898d0;
+  --tc-l: #d09060;
+  background: linear-gradient(180deg, #12122a 0%, #1a1a38 100%);
 }
 
 .tc-container[data-theme="pastel"] .tc-board-container {
-  border-color: #4a4a6e;
-  box-shadow: var(--shadow-lg), inset 0 0 30px rgba(0,0,0,0.3);
+  border-color: #3a3a60;
 }
 
 .tc-container[data-theme="pastel"] .tc-hold-piece,
 .tc-container[data-theme="pastel"] .tc-score-panel,
 .tc-container[data-theme="pastel"] .tc-piece-preview {
-  background: #222244;
-  border-color: #4a4a6e;
+  background: #1e1e40;
+  border-color: #3a3a60;
 }
 
 /* Container */
@@ -307,12 +307,12 @@
 /* ===== Combo Indicator ===== */
 .tc-combo-indicator {
   position: absolute;
-  top: 50%;
+  top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 10;
-  animation: tc-combo-pop 1.5s ease-out forwards;
+  animation: tc-combo-pop 1s ease-out forwards;
 }
 
 .tc-combo-text {
@@ -330,11 +330,11 @@
 @keyframes tc-combo-pop {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
+    transform: translate(-50%, -50%) scale(0.7);
   }
-  20% {
+  15% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(1.1);
   }
   40% {
     transform: translate(-50%, -50%) scale(1);
@@ -877,13 +877,13 @@
 /* ===== Score Popup ===== */
 .tc-score-popup {
   position: absolute;
-  top: 40%;
+  top: 20%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 15;
   pointer-events: none;
   text-align: center;
-  animation: tc-score-float 1.2s ease-out forwards;
+  animation: tc-score-float 1s ease-out forwards;
 }
 
 .tc-score-popup-label {
@@ -919,11 +919,12 @@
   right: 0;
   bottom: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 35%;
   z-index: 18;
   pointer-events: none;
-  animation: tc-levelup-flash 1.2s ease-out forwards;
+  animation: tc-levelup-flash 0.8s ease-out forwards;
 }
 
 @keyframes tc-levelup-flash {
@@ -1044,6 +1045,155 @@
   width: 100%;
 }
 
+/* ===== Enhanced Combo Counter ===== */
+.tc-combo-number {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.6),
+    0 0 24px rgba(255, 255, 255, 0.3),
+    2px 2px 0 rgba(0, 0, 0, 0.6);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.tc-combo-size-normal {
+  font-size: 2.2rem;
+}
+
+.tc-combo-size-large {
+  font-size: 3rem;
+}
+
+.tc-combo-size-xlarge {
+  font-size: 3.8rem;
+}
+
+.tc-combo-size-huge {
+  font-size: 4.5rem;
+}
+
+.tc-combo-pulse {
+  animation: tc-combo-scale-pulse 0.35s ease-out;
+}
+
+@keyframes tc-combo-scale-pulse {
+  0% {
+    transform: scale(1.5);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ===== Personal Best Indicator ===== */
+.tc-personal-best {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+.tc-new-best {
+  color: #ffd700;
+  font-weight: 700;
+  animation: tc-best-pulse 0.6s ease-in-out infinite;
+}
+@keyframes tc-best-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+/* ===== Daily Challenge Widget ===== */
+.tc-daily-challenge {
+  text-align: center;
+  padding: var(--gap-sm) var(--gap-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.tc-daily-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+.tc-daily-progress-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.tc-daily-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.tc-daily-complete {
+  color: var(--color-success);
+  font-weight: 700;
+}
+.tc-daily-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ===== Game Over Crumble Animation ===== */
+.tc-gameover-crumble {
+  animation: tc-crumble 0.4s ease-out;
+}
+
+@keyframes tc-crumble {
+  0% { transform: translateY(-4px); }
+  20% { transform: translateY(2px); }
+  40% { transform: translateY(-2px); }
+  60% { transform: translateY(1px); }
+  80% { transform: translateY(-1px); }
+  100% { transform: translateY(0); }
+}
+
+/* ===== Staggered Stat Fade-In ===== */
+.tc-gameover-stat-stagger {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: tc-stat-fade-in 0.3s ease-out forwards;
+}
+
+@keyframes tc-stat-fade-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Play Again Pulsing Glow ===== */
+.tc-btn-play-again-pulse {
+  animation: tc-play-again-glow 2s ease-in-out infinite;
+}
+
+@keyframes tc-play-again-glow {
+  0%, 100% { box-shadow: 0 4px 20px rgba(0, 206, 201, 0.4); }
+  50% { box-shadow: 0 4px 30px rgba(0, 206, 201, 0.7), 0 0 40px rgba(0, 206, 201, 0.3); }
+}
+
+/* ===== New Best Gold Glow ===== */
+.tc-new-best-glow {
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.3);
+  animation: tc-best-glow-pulse 1s ease-in-out infinite;
+}
+
+@keyframes tc-best-glow-pulse {
+  0%, 100% { text-shadow: 0 0 15px rgba(255, 215, 0, 0.6); transform: scale(1); }
+  50% { text-shadow: 0 0 25px rgba(255, 215, 0, 0.8), 0 0 50px rgba(255, 215, 0, 0.4); transform: scale(1.05); }
+}
+
 /* ===== Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
   .tc-combo-indicator {
@@ -1104,5 +1254,40 @@
   .tc-levelup-confetti {
     animation: none;
     display: none;
+  }
+
+  .tc-combo-pulse {
+    animation: none;
+  }
+
+  .tc-new-best {
+    animation: none;
+  }
+
+  .tc-gameover-crumble {
+    animation: none;
+  }
+
+  .tc-gameover-stat-stagger {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .tc-btn-play-again-pulse {
+    animation: none;
+  }
+
+  .tc-new-best-glow {
+    animation: none;
+  }
+
+  .main-menu-falling-block {
+    animation: none;
+    display: none;
+  }
+
+  .main-menu-daily-complete {
+    animation: none;
   }
 }

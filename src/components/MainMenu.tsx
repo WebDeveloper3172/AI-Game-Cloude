@@ -1,13 +1,75 @@
 /**
- * Main menu with game logo, play button, and settings.
+ * Main menu with game logo, play button, settings, and daily challenge.
  */
 import { useNavigate } from 'react-router-dom';
+import { useMemo, useState, useEffect } from 'react';
+
+/** Get today's date string for daily challenge tracking */
+function getTodayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+interface DailyProgress {
+  date: string;
+  lines: number;
+}
+
+function getDailyProgress(): DailyProgress {
+  try {
+    const raw = localStorage.getItem('tetris-classic-daily');
+    if (raw) {
+      const parsed = JSON.parse(raw) as DailyProgress;
+      if (parsed.date === getTodayStr()) return parsed;
+    }
+  } catch { /* ignore */ }
+  return { date: getTodayStr(), lines: 0 };
+}
+
+const FALLING_PIECES = [
+  { color: 'var(--tc-i)', size: 20, left: 5, duration: 25, delay: 0 },
+  { color: 'var(--tc-o)', size: 16, left: 15, duration: 32, delay: 4 },
+  { color: 'var(--tc-t)', size: 24, left: 28, duration: 28, delay: 8 },
+  { color: 'var(--tc-s)', size: 18, left: 42, duration: 35, delay: 2 },
+  { color: 'var(--tc-z)', size: 22, left: 55, duration: 22, delay: 12 },
+  { color: 'var(--tc-j)', size: 15, left: 68, duration: 30, delay: 6 },
+  { color: 'var(--tc-l)', size: 28, left: 80, duration: 38, delay: 10 },
+  { color: 'var(--tc-i)', size: 17, left: 92, duration: 26, delay: 15 },
+  { color: 'var(--tc-t)', size: 30, left: 35, duration: 40, delay: 18 },
+  { color: 'var(--tc-z)', size: 19, left: 72, duration: 20, delay: 7 },
+];
 
 export function MainMenu() {
   const navigate = useNavigate();
+  const [daily, setDaily] = useState<DailyProgress>(getDailyProgress);
+  const DAILY_GOAL = 20;
+
+  // Re-check daily progress on mount (handles midnight reset)
+  useEffect(() => {
+    setDaily(getDailyProgress());
+  }, []);
+
+  const fallingBlocks = useMemo(() => (
+    <div className="main-menu-falling-bg" aria-hidden="true">
+      {FALLING_PIECES.map((p, i) => (
+        <div
+          key={i}
+          className="main-menu-falling-block"
+          style={{
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            left: `${p.left}%`,
+            backgroundColor: p.color,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  ), []);
 
   return (
     <div className="main-menu">
+      {fallingBlocks}
       <div className="main-menu-content">
         <div className="main-menu-logo">
           <h1 className="main-menu-title">
@@ -49,6 +111,16 @@ export function MainMenu() {
             <span className="menu-btn-icon">&#x2699;</span>
             Settings
           </button>
+        </div>
+
+        <div className="main-menu-daily">
+          {daily.lines >= DAILY_GOAL ? (
+            <span className="main-menu-daily-complete">Daily Complete!</span>
+          ) : (
+            <span className="main-menu-daily-progress">
+              Daily: {daily.lines}/{DAILY_GOAL} lines
+            </span>
+          )}
         </div>
 
         <div className="main-menu-footer">

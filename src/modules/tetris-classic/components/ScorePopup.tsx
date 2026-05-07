@@ -34,7 +34,7 @@ export function ScorePopup({ points, label, trigger }: ScorePopupProps) {
     setVisible(true);
     const timer = window.setTimeout(() => {
       setVisible(false);
-    }, 1200);
+    }, 900);
     return () => window.clearTimeout(timer);
   }, [trigger, points, label]);
 

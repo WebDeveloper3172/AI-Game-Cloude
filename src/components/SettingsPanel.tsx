@@ -37,9 +37,6 @@ export function SettingsPanel() {
               </button>
             ))}
           </div>
-          <p className="settings-theme-note">
-            Theme applies to UI panels and backgrounds. Canvas piece colors will be updated in a future release.
-          </p>
         </div>
 
         <div className="settings-group">

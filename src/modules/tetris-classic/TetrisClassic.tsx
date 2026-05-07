@@ -29,6 +29,7 @@ import { GameBoard } from './components/GameBoard';
 import { PiecePreview } from './components/PiecePreview';
 import { HoldPiece } from './components/HoldPiece';
 import { ScorePanel } from './components/ScorePanel';
+import { getThemeColors } from './engine/themes';
 import { ComboIndicator } from './components/ComboIndicator';
 import { ScorePopup } from './components/ScorePopup';
 import { TouchControls } from './components/TouchControls';
@@ -103,6 +104,8 @@ export default function TetrisClassic() {
   const { scores, addScore } = useHighScores();
   const announce = useAnnouncer();
   const audio = useTetrisClassicAudio(settings ?? DEFAULT_SETTINGS);
+  const themeColors = getThemeColors(settings.theme || 'dark');
+  const highScore = scores.length > 0 ? scores[0].score : 0;
 
   // Inactivity hint system
   const INACTIVITY_HINT_MS = 18_000;
@@ -279,7 +282,7 @@ export default function TetrisClassic() {
         levelUpTimerRef.current = window.setTimeout(() => {
           setLevelUpCelebration(null);
           levelUpTimerRef.current = null;
-        }, 1200);
+        }, 800);
       }
 
       // Start clear animation
@@ -387,6 +390,32 @@ export default function TetrisClassic() {
       if (levelUpTimerRef.current !== null) window.clearTimeout(levelUpTimerRef.current);
     };
   }, []);
+
+  // ---- Daily challenge tracking ----
+  const prevLinesRef = useRef(0);
+  useEffect(() => {
+    const newLines = state.stats.lines;
+    const diff = newLines - prevLinesRef.current;
+    if (diff > 0 && state.phase !== 'idle') {
+      prevLinesRef.current = newLines;
+      try {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const raw = localStorage.getItem('tetris-classic-daily');
+        let daily = { date: todayStr, lines: 0 };
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.date === todayStr) daily = parsed;
+        }
+        daily.lines += diff;
+        daily.date = todayStr;
+        localStorage.setItem('tetris-classic-daily', JSON.stringify(daily));
+      } catch { /* ignore */ }
+    }
+    // Reset tracking on new game
+    if (newLines === 0) {
+      prevLinesRef.current = 0;
+    }
+  }, [state.stats.lines, state.phase]);
 
   // ---- Start game (with countdown) ----
   const startGame = useCallback(() => {
@@ -738,8 +767,8 @@ export default function TetrisClassic() {
       {(state.phase === 'playing' || state.phase === 'paused') && (
         <div className="tc-game-layout">
           <div className="tc-left-panel">
-            <HoldPiece piece={state.holdPiece} used={state.holdUsed} />
-            <ScorePanel stats={state.stats} />
+            <HoldPiece piece={state.holdPiece} used={state.holdUsed} themeColors={themeColors} />
+            <ScorePanel stats={state.stats} highScore={highScore} />
           </div>
 
           <div className="tc-center-panel">
@@ -763,6 +792,7 @@ export default function TetrisClassic() {
                 highContrast={settings.highContrast}
                 hardDropTrail={hardDropTrail}
                 isPaused={state.phase === 'paused'}
+                themeColors={themeColors}
               />
               <ComboIndicator label={comboLabel} trigger={comboTrigger} />
               <ScorePopup points={scorePopup.points} label={scorePopup.label} trigger={scorePopup.trigger} />
@@ -816,7 +846,7 @@ export default function TetrisClassic() {
           )}
 
           <div className="tc-right-panel">
-            <PiecePreview pieces={state.nextPieces} />
+            <PiecePreview pieces={state.nextPieces} themeColors={themeColors} />
           </div>
         </div>
       )}

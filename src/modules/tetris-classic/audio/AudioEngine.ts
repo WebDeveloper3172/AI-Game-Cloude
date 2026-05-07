@@ -139,9 +139,9 @@ export class TetrisAudioEngine {
   playMove(): void {
     if (!this.canPlay('move')) return;
     const t = this.now();
-    const n = this.osc('sine', 400, t, 0.03, 0.15);
+    const n = this.osc('sine', 500, t, 0.03, 0.2);
     if (n) {
-      n.gain.gain.setValueAtTime(0.15, t);
+      n.gain.gain.setValueAtTime(0.2, t);
       n.gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
     }
   }
