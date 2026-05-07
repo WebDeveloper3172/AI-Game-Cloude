@@ -1,8 +1,8 @@
 /**
  * On-screen mobile touch controls for the game.
- * Uses onTouchStart for instant mobile response with onClick fallback for desktop.
+ * Uses onTouchStart for instant response; onClick is blocked if touch already fired.
  */
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import type { GameAction } from '../hooks/useInput';
 
 interface TouchControlsProps {
@@ -10,22 +10,30 @@ interface TouchControlsProps {
 }
 
 function useTouchAction(onAction: (action: GameAction) => void, action: GameAction) {
+  const touchedRef = useRef(false);
+
   const handleTouch = useCallback(
     (e: React.TouchEvent) => {
       e.preventDefault();
+      touchedRef.current = true;
       onAction(action);
+      // Reset after a short delay so onClick doesn't also fire
+      setTimeout(() => { touchedRef.current = false; }, 300);
     },
     [onAction, action],
   );
+
   const handleClick = useCallback(() => {
-    onAction(action);
+    // Only fire if touch didn't already handle it (desktop fallback)
+    if (!touchedRef.current) {
+      onAction(action);
+    }
   }, [onAction, action]);
 
   return { onTouchStart: handleTouch, onClick: handleClick };
 }
 
 export function TouchControls({ onAction }: TouchControlsProps) {
-  const rotateCCW = useTouchAction(onAction, 'rotateCCW');
   const rotateCW = useTouchAction(onAction, 'rotateCW');
   const hardDrop = useTouchAction(onAction, 'hardDrop');
   const hold = useTouchAction(onAction, 'hold');
@@ -38,19 +46,10 @@ export function TouchControls({ onAction }: TouchControlsProps) {
     <div className="tc-touch-controls" role="group" aria-label="Game controls">
       <div className="tc-touch-row tc-touch-row-top">
         <button
-          className="tc-touch-btn tc-touch-rotate-ccw"
-          onTouchStart={rotateCCW.onTouchStart}
-          onClick={rotateCCW.onClick}
-          aria-label="Rotate piece counter-clockwise"
-          type="button"
-        >
-          &#x21BA;
-        </button>
-        <button
           className="tc-touch-btn tc-touch-rotate"
           onTouchStart={rotateCW.onTouchStart}
           onClick={rotateCW.onClick}
-          aria-label="Rotate piece clockwise"
+          aria-label="Rotate piece"
           type="button"
         >
           &#x21BB;

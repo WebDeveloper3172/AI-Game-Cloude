@@ -748,6 +748,13 @@
   margin-bottom: var(--gap-sm);
 }
 
+/* Hide toolbar pause button on touch devices — touch controls have their own */
+@media (hover: none) and (pointer: coarse) {
+  .tc-game-toolbar {
+    display: none;
+  }
+}
+
 .tc-btn-toolbar {
   padding: 0.35rem 0.9rem;
   font-size: 0.85rem;
