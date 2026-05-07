@@ -19,7 +19,7 @@ export interface GhostCell {
  */
 export function getGhostCells(piece: ActivePiece, grid: Grid): GhostCell[] {
   const ghostY = getGhostY(piece, grid);
-  if (ghostY === piece.position.y) return []; // Already at bottom, no ghost needed
+  // Always show ghost so player sees where the piece will land
   return getPieceCells(piece.type, piece.rotation, { x: piece.position.x, y: ghostY });
 }
 
