@@ -627,6 +627,127 @@ body {
   50% { box-shadow: 0 0 12px 2px rgba(0,184,148,0.3); }
 }
 
+/* ===== Games grid (unified launcher) ===== */
+.main-menu-games-section {
+  margin-bottom: var(--gap-xl);
+}
+
+.main-menu-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 var(--gap-md) 0;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.main-menu-games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--gap-md);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 22px 16px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  font-family: var(--font-main);
+  color: white;
+  min-height: 160px;
+}
+
+.game-card:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.game-card:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.game-card-icon {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.game-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.game-card-desc {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+.game-card-classic {
+  background: linear-gradient(135deg, var(--color-primary), #a855f7);
+  box-shadow: var(--shadow-glow);
+}
+
+.game-card-classic:hover {
+  box-shadow: 0 8px 24px rgba(108, 92, 231, 0.45);
+}
+
+.game-card-square-builder {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+}
+
+.game-card-square-builder:hover {
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.55);
+}
+
+.main-menu-utility-row {
+  flex-direction: row !important;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--gap-sm) !important;
+  margin-bottom: var(--gap-md) !important;
+}
+
+.main-menu-utility-row .menu-btn {
+  font-size: 1rem;
+  padding: 10px 16px;
+}
+
+@media (max-width: 480px) {
+  .main-menu-games-grid {
+    grid-template-columns: 1fr;
+  }
+  .game-card {
+    flex-direction: row;
+    text-align: left;
+    min-height: auto;
+    padding: 14px 16px;
+  }
+  .game-card-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+  .game-card-title {
+    font-size: 1.1rem;
+  }
+  .game-card-desc {
+    font-size: 0.8rem;
+  }
+  .game-card > .game-card-icon + div,
+  .game-card > div:not(.game-card-icon) {
+    flex: 1;
+  }
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .main-menu-title {

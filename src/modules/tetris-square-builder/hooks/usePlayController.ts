@@ -78,9 +78,16 @@ export function usePlayController(opts: PlayControllerOpts) {
     return () => window.clearInterval(id);
   }, [opts.paused, state.isComplete, state.isTimeUp, opts]);
 
-  // Completion side-effect
+  // Completion side-effect.
+  // Guard with `state.level.id === opts.level.id` to prevent the brief window
+  // during a level transition where state still reports the previous level as
+  // complete; without this, the result dialog can fire twice in a row.
   useEffect(() => {
-    if (state.isComplete && !completedRef.current) {
+    if (
+      state.isComplete &&
+      state.level.id === opts.level.id &&
+      !completedRef.current
+    ) {
       completedRef.current = true;
       const stars = computeStars(opts.level, state.undosUsed, state.timeRemainingMs);
       const result: LevelProgress = {
@@ -92,7 +99,7 @@ export function usePlayController(opts: PlayControllerOpts) {
       };
       opts.onComplete(result);
     }
-  }, [state.isComplete, state.undosUsed, state.timeRemainingMs, opts]);
+  }, [state.isComplete, state.level.id, state.undosUsed, state.timeRemainingMs, opts]);
 
   const selectTrayPiece = useCallback((trayPieceId: string | null) => {
     setState(prev => ({

@@ -104,26 +104,35 @@ export function MainMenu() {
           <p className="main-menu-subtitle">Fun Blocks for Kids!</p>
         </div>
 
-        <div className="main-menu-buttons">
-          <button
-            className="menu-btn menu-btn-play"
-            onClick={() => navigate('/tetris-classic')}
-            type="button"
-            autoFocus
-          >
-            <span className="menu-btn-icon">&#x25B6;</span>
-            Play Classic Tetris
-          </button>
+        <div className="main-menu-games-section">
+          <h2 className="main-menu-section-title">Pick a Game</h2>
+          <div className="main-menu-games-grid">
+            <button
+              className="game-card game-card-classic"
+              onClick={() => navigate('/tetris-classic')}
+              type="button"
+              autoFocus
+              aria-label="Play Classic Tetris"
+            >
+              <div className="game-card-icon" aria-hidden="true">&#x25B6;</div>
+              <div className="game-card-title">Classic Tetris</div>
+              <div className="game-card-desc">Falling blocks. Clear lines to score!</div>
+            </button>
 
-          <button
-            className="menu-btn menu-btn-square-builder"
-            onClick={() => navigate('/tetris-square-builder')}
-            type="button"
-          >
-            <span className="menu-btn-icon">&#x25A2;</span>
-            Square Builder
-          </button>
+            <button
+              className="game-card game-card-square-builder"
+              onClick={() => navigate('/tetris-square-builder')}
+              type="button"
+              aria-label="Play Square Builder"
+            >
+              <div className="game-card-icon" aria-hidden="true">&#x25A2;</div>
+              <div className="game-card-title">Square Builder</div>
+              <div className="game-card-desc">Fill the square with tetromino pieces!</div>
+            </button>
+          </div>
+        </div>
 
+        <div className="main-menu-buttons main-menu-utility-row">
           <button
             className="menu-btn menu-btn-leaderboard"
             onClick={() => navigate('/leaderboard')}

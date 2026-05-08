@@ -50,16 +50,21 @@ export default function TetrisSquareBuilder() {
     setUrgentCaption(audio.getCaption(captionKey));
     audio.speak(captionKey);
     recordLevelResult(result);
-    const world1Levels = getLevelsByWorld(1);
-    const earned = world1Levels.reduce((sum, l) => sum + (save.progress[l.id]?.stars ?? 0), 0)
-      + result.stars - (save.progress[result.levelId]?.stars ?? 0);
-    const w2 = WORLDS.find(w => w.id === 2);
-    if (w2 && earned >= w2.unlockRequirement.minStars && !isWorldUnlocked(2)) {
-      unlockWorld(2);
+
+    // Unlock the next world if the player crosses its star threshold AND that
+    // world has at least one level defined (defensive against empty placeholders).
+    const newTotalStars = save.totalStars
+      + (result.stars - (save.progress[result.levelId]?.stars ?? 0));
+    for (const world of WORLDS) {
+      if (isWorldUnlocked(world.id)) continue;
+      if (getLevelsByWorld(world.id).length === 0) continue;
+      if (newTotalStars >= world.unlockRequirement.minStars) {
+        unlockWorld(world.id);
+      }
     }
     setResultOutcome('complete');
     setResultStars(result.stars);
-  }, [audio, recordLevelResult, save.progress, isWorldUnlocked, unlockWorld]);
+  }, [audio, recordLevelResult, save.totalStars, save.progress, isWorldUnlocked, unlockWorld]);
 
   const onTimeUp = useCallback(() => {
     audio.playTimeUp();

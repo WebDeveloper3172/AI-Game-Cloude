@@ -1,5 +1,5 @@
-/** World select screen: 3 worlds shown; locked worlds dimmed. */
-import { WORLDS } from '../engine/levels.ts';
+/** World select screen: 3 worlds shown; locked / unimplemented worlds dimmed. */
+import { WORLDS, getLevelsByWorld } from '../engine/levels.ts';
 
 interface Props {
   unlockedIds: number[];
@@ -18,7 +18,11 @@ export function WorldSelect({ unlockedIds, totalStars, onPick, onBack }: Props) 
       </div>
       <div className="sb-world-grid">
         {WORLDS.map(w => {
-          const unlocked = unlockedIds.includes(w.id);
+          const hasLevels = getLevelsByWorld(w.id).length > 0;
+          const unlocked = unlockedIds.includes(w.id) && hasLevels;
+          const lockReason = !hasLevels
+            ? 'Coming soon'
+            : `Needs ${w.unlockRequirement.minStars} stars`;
           return (
             <button
               key={w.id}
@@ -26,13 +30,13 @@ export function WorldSelect({ unlockedIds, totalStars, onPick, onBack }: Props) 
               className={`sb-world-card sb-world-${w.themeKey} ${unlocked ? '' : 'sb-world-locked'}`}
               onClick={() => unlocked && onPick(w.id)}
               disabled={!unlocked}
-              aria-label={`World ${w.id}: ${w.name}${unlocked ? '' : `, locked, needs ${w.unlockRequirement.minStars} stars`}`}
+              aria-label={`World ${w.id}: ${w.name}${unlocked ? '' : `, locked. ${lockReason}.`}`}
             >
               <div className="sb-world-card-title">{w.name}</div>
               <div className="sb-world-card-desc">{w.description}</div>
               {!unlocked && (
                 <div className="sb-world-card-lock">
-                  &#x1F512; {w.unlockRequirement.minStars} stars
+                  &#x1F512; {lockReason}
                 </div>
               )}
             </button>
