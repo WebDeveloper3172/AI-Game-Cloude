@@ -5,6 +5,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { useSettings } from './modules/tetris-classic/hooks/useLocalStorage'
 
 const TetrisClassic = lazy(() => import('./modules/tetris-classic/TetrisClassic'))
+const TetrisSquareBuilder = lazy(() => import('./modules/tetris-square-builder/TetrisSquareBuilder'))
 const Leaderboard = lazy(() => import('./components/LeaderboardPage'))
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MainMenu />} />
           <Route path="/tetris-classic" element={<TetrisClassic />} />
+          <Route path="/tetris-square-builder" element={<TetrisSquareBuilder />} />
           <Route path="/settings" element={<SettingsPanel />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
